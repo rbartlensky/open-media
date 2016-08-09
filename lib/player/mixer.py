@@ -24,10 +24,3 @@ class Mixer(object):
 
     def stop(self):
         mixer.music.stop()
-
-    
-
-    
-
-    
-    
