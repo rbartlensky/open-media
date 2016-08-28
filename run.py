@@ -1,9 +1,10 @@
-import sys
-from lib.player import mixer
+import sys, time
+from openmedia.player import mixer
 
 def main(args):
-    mixer = Mixer(args[1:])
-    mixer.run()
+    mix = mixer.Mixer(args[1:])
+    mix.play_next()
+    #time.sleep(2000)
 
 if __name__ == "__main__":
     print sys.argv
