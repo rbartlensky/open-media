@@ -13,7 +13,7 @@ class _ControlFrame(Tk.Frame):
     def __init__(self, root, mixer):
         Tk.Frame.__init__(self, root)
         self.b_play = widgets.PlayButton(self, mixer)
-        self.s_volume = widgets.VolumeSlider(self)
+        self.s_volume = widgets.VolumeSlider(self, mixer)
         self.b_play.grid(row=0, column=0)
         self.s_volume.grid(row=0, column=6, columnspan=3)
 

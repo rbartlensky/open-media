@@ -30,9 +30,9 @@ class Mixer(object):
     def stop(self):
         mixer.music.stop()
 
-    def set_volume(volume):
+    def set_volume(self, volume):
         if volume >= 0.0 and volume <= 1.0:
-            mixer.set_volume(volume)
+            mixer.music.set_volume(volume)
         else:
             raise InvalidVolumeError(volume)
 

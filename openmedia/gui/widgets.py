@@ -47,5 +47,12 @@ class PlayerSlider(Tk.Scale):
         Tk.Scale.__init__(self, root, from_=0, to=to, orient=Tk.HORIZONTAL)
 
 class VolumeSlider(Tk.Scale):
-    def __init__(self, root):
-        Tk.Scale.__init__(self, root, from_=0, to=100, orient=Tk.HORIZONTAL)
+    def __init__(self, root, mixer):
+        Tk.Scale.__init__(self, root, from_=0, to=100, orient=Tk.HORIZONTAL, command=self._set_volume)
+        self.mixer = mixer
+
+    def _set_volume(self, value):
+        if not self.mixer:
+            raise NoMixerException()
+        else:
+            self.mixer.set_volume(float(value)/100)
