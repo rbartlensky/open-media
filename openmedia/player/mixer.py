@@ -45,3 +45,6 @@ class Mixer(object):
         song = self.song_list[self.song_index]
         self.song_index = (self.song_index + 1) % self.total_tracks
         return song
+
+    def get_song_duration(self):
+        return self.current_song.duration
