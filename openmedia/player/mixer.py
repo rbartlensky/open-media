@@ -8,8 +8,9 @@ class Mixer(object):
 
     def __init__(self, song_list):
         self.song_list = [Track(song) for song in song_list]
-        self.song_list.reverse()
         mixer.init()
+        self.song_index = 0
+        self.total_tracks = len(self.song_list)
         self.current_song = self._get_next_song()
         self.is_paused = False
 
@@ -35,10 +36,12 @@ class Mixer(object):
         else:
             raise InvalidVolumeError(volume)
 
-    def play_next():
+    def play_next(self):
+        #self.stop() # not sure if needed
         self.current_song = self._get_next_song()
+        self.play()
 
-    def _get_next_song():
-        old = self.song_list.pop()
-        self.song_list.push(old)
-        return old
+    def _get_next_song(self):
+        song = self.song_list[self.song_index]
+        self.song_index = (self.song_index + 1) % self.total_tracks
+        return song
