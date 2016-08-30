@@ -29,7 +29,9 @@ class PlayerMenu(Tk.Menu):
 
     def _open_file(self):
         self.filename = tkFileDialog.askopenfilename()
-        self.openfile = tkFileDialog.askopenfile()
+        mixer.stop()
+        mixer.init([self.filename])
+        mixer.play()
 
     def _create_sub_menu(self, label, commands):
         sub_menu = Tk.Menu()
