@@ -9,6 +9,7 @@ song_index = 0
 total_tracks = 0
 current_song = None
 is_paused = False
+is_stopped = False
 
 def init(song_list):
     global track_list, song_index, total_tracks, current_song, is_paused
@@ -20,12 +21,14 @@ def init(song_list):
     is_paused = False
 
 def play():
-    global is_paused, curret_song
-    if not is_paused:
+    global is_paused, is_stopped, current_song
+    if not is_paused or is_stopped:
+        is_stopped = False
         mixer.music.load(current_song.get_path())
         mixer.music.play()
     else:
         is_paused = False
+        is_stopped = False
         mixer.music.unpause()
 
 def pause():
@@ -35,17 +38,20 @@ def pause():
         mixer.music.pause()
 
 def stop():
+    global is_paused, is_stopped
     mixer.music.stop()
-    
+    is_paused = False
+    is_stopped = True
+
 def set_volume(volume):
     if volume >= 0.0 and volume <= 1.0:
         mixer.music.set_volume(volume)
     else:
         raise InvalidVolumeError(volume)
 
-def play_next(self):
+def play_next():
     global current_song
-    #self.stop() # not sure if needed
+    stop()
     current_song = _get_next_song()
     play()
 

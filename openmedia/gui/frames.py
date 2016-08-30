@@ -1,5 +1,8 @@
+# -*- coding: utf-8 -*-
+
 import Tkinter as Tk
 import widgets
+from openmedia.player import mixer
 
 class PlayerFrame(Tk.Frame):
     def __init__(self, root):
@@ -12,10 +15,24 @@ class PlayerFrame(Tk.Frame):
 class _ControlFrame(Tk.Frame):
     def __init__(self, root):
         Tk.Frame.__init__(self, root)
-        self.b_play = widgets.PlayButton(self)
+        self.b_play = widgets.PlayButton(self, self._play_pause)
+        self.b_stop = widgets.StopButton(self, self._stop)
         self.s_volume = widgets.VolumeSlider(self)
         self.b_play.grid(row=0, column=0)
+        self.b_stop.grid(row=0, column=1)
         self.s_volume.grid(row=0, column=6, columnspan=3)
+
+    def _play_pause(self):
+        if not mixer.is_paused and not mixer.is_stopped:
+            self.b_play.config(text=u'▶')
+            mixer.pause()
+        else:
+            self.b_play.config(text=u'▌▌')
+            mixer.play()
+
+    def _stop(self):
+        self._play_pause()
+        mixer.stop()
 
 class _StatusFrame(Tk.Frame):
     def __init__(self, root):

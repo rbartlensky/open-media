@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import Tkinter as Tk
@@ -9,20 +8,14 @@ class NoMixerException(Exception):
     pass
 
 class PlayButton(Tk.Button):
-    def __init__(self, root):
-        Tk.Button.__init__(self, root, text=u'▌▌', command=self._play_pause)
-        self.is_paused = False
+    def __init__(self, root, cmd):
+        Tk.Button.__init__(self, root, text=u'▌▌', command=cmd)
         mixer.play()
 
-    def _play_pause(self):
-        if not self.is_paused:
-            self.config(text=u'▶')
-            self.is_paused = True
-            mixer.pause()
-        else:
-            self.config(text=u'▌▌')
-            self.is_paused = False
-            mixer.play()
+
+class StopButton(Tk.Button):
+    def __init__(self, root, cmd):
+        Tk.Button.__init__(self, root, text=u'■', command=cmd)
 
 class PlayerMenu(Tk.Menu):
     def __init__(self):
