@@ -17,6 +17,10 @@ class StopButton(Tk.Button):
     def __init__(self, root, cmd):
         Tk.Button.__init__(self, root, text=u'■', command=cmd)
 
+class NextButton(Tk.Button):
+    def __init__(self, root, cmd):
+        Tk.Button.__init__(self, root, text=u'↦', command=cmd)
+
 class PlayerMenu(Tk.Menu):
     def __init__(self):
         Tk.Menu.__init__(self)

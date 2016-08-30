@@ -17,9 +17,11 @@ class _ControlFrame(Tk.Frame):
         Tk.Frame.__init__(self, root)
         self.b_play = widgets.PlayButton(self, self._play_pause)
         self.b_stop = widgets.StopButton(self, self._stop)
+        self.b_next = widgets.NextButton(self, self._play_next)
         self.s_volume = widgets.VolumeSlider(self)
         self.b_play.grid(row=0, column=0)
         self.b_stop.grid(row=0, column=1)
+        self.b_next.grid(row=0, column=2)
         self.s_volume.grid(row=0, column=6, columnspan=3)
 
     def _play_pause(self):
@@ -33,6 +35,9 @@ class _ControlFrame(Tk.Frame):
     def _stop(self):
         self._play_pause()
         mixer.stop()
+
+    def _play_next(self):
+        mixer.play_next()
 
 class _StatusFrame(Tk.Frame):
     def __init__(self, root):
