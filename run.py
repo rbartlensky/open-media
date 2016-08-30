@@ -3,8 +3,8 @@ from openmedia.player import mixer
 from openmedia.gui.playerapp import PlayerApp
 
 def main(args):
-    mix = mixer.Mixer(args[1:])
-    player = PlayerApp(mix)
+    mixer.init(args[1:])
+    player = PlayerApp()
 
 if __name__ == "__main__":
     print sys.argv

@@ -3,28 +3,26 @@
 
 import Tkinter as Tk
 import tkFileDialog
+from openmedia.player import mixer
 
 class NoMixerException(Exception):
     pass
 
 class PlayButton(Tk.Button):
-    def __init__(self, root, mixer):
+    def __init__(self, root):
         Tk.Button.__init__(self, root, text=u'▌▌', command=self._play_pause)
         self.is_paused = False
-        self.mixer = mixer
-        self.mixer.play()
+        mixer.play()
 
     def _play_pause(self):
-        if not self.mixer:
-            raise NoMixerException()
-        elif not self.is_paused:
+        if not self.is_paused:
             self.config(text=u'▶')
             self.is_paused = True
-            self.mixer.pause()
+            mixer.pause()
         else:
             self.config(text=u'▌▌')
             self.is_paused = False
-            self.mixer.play()
+            mixer.play()
 
 class PlayerMenu(Tk.Menu):
     def __init__(self):
@@ -47,12 +45,9 @@ class PlayerSlider(Tk.Scale):
         Tk.Scale.__init__(self, root, from_=0, to=to, orient=Tk.HORIZONTAL)
 
 class VolumeSlider(Tk.Scale):
-    def __init__(self, root, mixer):
+    def __init__(self, root):
         Tk.Scale.__init__(self, root, from_=0, to=100, orient=Tk.HORIZONTAL, command=self._set_volume)
         self.mixer = mixer
 
     def _set_volume(self, value):
-        if not self.mixer:
-            raise NoMixerException()
-        else:
-            self.mixer.set_volume(float(value)/100)
+        mixer.set_volume(float(value)/100)
