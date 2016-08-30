@@ -1,4 +1,3 @@
-from mutagen.mp3 import MP3, MPEGInfo
 from audiotools import open, Filename
 
 class Track(object):

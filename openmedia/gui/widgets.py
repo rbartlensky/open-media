@@ -12,7 +12,6 @@ class PlayButton(Tk.Button):
         Tk.Button.__init__(self, root, text=u'▌▌', command=cmd)
         mixer.play()
 
-
 class StopButton(Tk.Button):
     def __init__(self, root, cmd):
         Tk.Button.__init__(self, root, text=u'■', command=cmd)
@@ -20,6 +19,19 @@ class StopButton(Tk.Button):
 class NextButton(Tk.Button):
     def __init__(self, root, cmd):
         Tk.Button.__init__(self, root, text=u'↦', command=cmd)
+
+class PlaylistButton(Tk.Button):
+    def __init__(self, root, cmd):
+        Tk.Button.__init__(self, root, text=u'≡', command=cmd)
+
+class AddButton(Tk.Button):
+    def __init__(self, root, cmd):
+        Tk.Button.__init__(self, root, text=u'+', command=cmd)
+
+class PlayList(Tk.Listbox):
+    def __init__(self, root, cmd):
+        Tk.Listbox.__init__(self, root, selectmode=Tk.SINGLE)
+        self.bind('<Double-Button-1>', cmd)
 
 class PlayerMenu(Tk.Menu):
     def __init__(self):
