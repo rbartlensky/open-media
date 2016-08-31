@@ -37,6 +37,8 @@ class _ControlFrame(Tk.Frame):
         mixer.stop()
 
     def _play_next(self):
+        if mixer.is_paused:
+            self._play_pause()
         mixer.play_next()
 
 class _StatusFrame(Tk.Frame):
