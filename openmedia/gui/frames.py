@@ -35,12 +35,12 @@ class _PlaylistFrame(Tk.Frame):
 
     def _play(self, event):
         mixer.stop()
-        mixer.init([self.l_playlist.get(Tk.ACTIVE)])
-        mixer.play()
+        mixer.play(self.l_playlist.get(Tk.ACTIVE))
 
     def _add_track(self):
-        self.filename = tkFileDialog.askopenfilename()
-        self.l_playlist.insert(Tk.END, os.path.basename(self.filename))
+        self.filename = os.path.basename(tkFileDialog.askopenfilename())
+        self.l_playlist.insert(Tk.END, self.filename)
+        mixer.add(self.filename)
 
 class _ControlFrame(Tk.Frame):
     def __init__(self, root):

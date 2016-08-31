@@ -11,8 +11,6 @@ class Track(object):
         except Exception:
             self.meta_data = None
             self.duration = 0
-            
+
     def get_path(self):
         return self.__file_path
-
-    

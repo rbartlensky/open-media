@@ -1,5 +1,6 @@
 from pygame import mixer
 from track import Track
+import os
 
 class InvalidVolumeError(Exception):
     pass
@@ -20,8 +21,10 @@ def init(song_list):
     current_song = _get_next_song()
     is_paused = False
 
-def play():
+def play(filename=None):
     global is_paused, is_stopped, current_song
+    if filename:
+        current_song = get_song(filename)
     if not is_paused or is_stopped:
         is_stopped = False
         mixer.music.load(current_song.get_path())
@@ -30,6 +33,12 @@ def play():
         is_paused = False
         is_stopped = False
         mixer.music.unpause()
+
+def get_song(filename):
+    for track in track_list:
+        if filename == os.path.basename(track.get_path()):
+            return track
+    return None
 
 def pause():
     global is_paused
