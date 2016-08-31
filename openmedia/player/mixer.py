@@ -24,7 +24,8 @@ def init(song_list):
 def play(filename=None):
     global is_paused, is_stopped, current_song
     if filename:
-        current_song = get_song(filename)
+        song_index = get_song_index(filename)
+        current_song = track_list[song_index]
     if not is_paused or is_stopped:
         is_stopped = False
         mixer.music.load(current_song.get_path())
@@ -34,10 +35,10 @@ def play(filename=None):
         is_stopped = False
         mixer.music.unpause()
 
-def get_song(filename):
-    for track in track_list:
+def get_song_index(filename):
+    for idx, track in enumerate(track_list):
         if filename == os.path.basename(track.get_path()):
-            return track
+            return idx
     return None
 
 def pause():
@@ -66,8 +67,8 @@ def play_next():
 
 def _get_next_song():
     global track_list, song_index, total_tracks
-    song = track_list[song_index]
     song_index = (song_index + 1) % total_tracks
+    song = track_list[song_index]
     return song
 
 def get_song_duration():

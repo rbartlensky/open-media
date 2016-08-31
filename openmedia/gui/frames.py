@@ -19,9 +19,14 @@ class _PlaylistFrame(Tk.Frame):
         Tk.Frame.__init__(self, root)
         self.b_playlist = widgets.PlaylistButton(self, self._show_hide)
         self.b_add = widgets.AddButton(self, self._add_track)
-        self.l_playlist = widgets.PlayList(self, self._play)
         self.b_playlist.grid(row=1, column=0)
+        self._create_playlist()
         self.playlist_visible = False
+
+    def _create_playlist(self):
+        self.l_playlist = widgets.PlayList(self, self._play)
+        for track in mixer.track_list:
+            self.l_playlist.insert(Tk.END, os.path.basename(track.get_path()))
 
     def _show_hide(self):
         if self.playlist_visible:
