@@ -64,3 +64,8 @@ def _get_next_song():
 def get_song_duration():
     global current_song
     return current_song.duration
+
+def add(track_path):
+    global track_list, total_tracks
+    total_tracks += 1
+    track_list.append(Track(track_path))
