@@ -28,17 +28,22 @@ class PlayerFrame(Tk.Frame):
         self.f_playlist.l_playlist.bind('<Double-Button-1>', self._play)
         self.f_progress.set_alarm(self._progress)
 
-    def _play_pause_handler(self, event):
+    def _play_pause(self, button):
         if not mixer.is_paused and not mixer.is_stopped:
-            self.f_control.buttons[_ControlFrame.PLAY].config(text=u'▶')
+            button.config(text=u'▶')
             mixer.pause()
         else:
-            self.f_control.buttons[_ControlFrame.PLAY].config(text=u'▌▌')
+            button.config(text=u'▌▌')
             mixer.play()
+            self.f_progress.set_alarm(self._progress)
+
+    def _play_pause_handler(self, event):
+        self._play_pause(event.widget)
 
     def _stop_handler(self, event):
-        self._play_pause_handler(event)
+        self._play_pause(self.f_control.buttons[_ControlFrame.PLAY])
         mixer.stop()
+        self.f_progress.set(0)
 
     def _play_next_handler(self, event):
         if mixer.is_paused:
@@ -65,6 +70,9 @@ class PlayerFrame(Tk.Frame):
     def _play(self, event):
         mixer.stop()
         mixer.play(self.f_playlist.l_playlist.get(Tk.ACTIVE))
+        progress = self.f_progress
+        progress.set(0)
+        progress.set_max(mixer.get_song_duration())
 
     def _add_handler(self, event):
         self.filename = os.path.basename(tkFileDialog.askopenfilename())
@@ -77,13 +85,13 @@ class PlayerFrame(Tk.Frame):
     def _progress(self):
         bar = self.f_progress
         new_value = bar.get()+1
-        if new_value <= mixer.get_song_duration():
-            bar.set(new_value)
-            bar.set_alarm(self._progress)
+        if new_value < mixer.get_song_duration():
+            if not mixer.is_stopped and not mixer.is_paused:            
+                bar.set(new_value)
+                bar.set_alarm(self._progress)
         else:
             control = self.f_control
             self._play_next_handler(control.buttons[control.PLAY])
-        
 
 class _PlaylistFrame(Tk.Frame):
     _button_data = [('show_hide', u'≡', False, True),
@@ -148,7 +156,6 @@ class _ProgressFrame(Tk.Frame):
 
     def set(self, value):
         self.s_progress.set(value)
-        
+
     def set_max(self, value):
         self.s_progress.config(to=mixer.get_song_duration())
-        
