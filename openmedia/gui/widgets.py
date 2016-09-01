@@ -4,34 +4,29 @@ import Tkinter as Tk
 import tkFileDialog
 from openmedia.player import mixer
 
-class NoMixerException(Exception):
-    pass
+class PlayerButton(Tk.Button):
+    def __init__(self, root, text, name, visible=True, checked=None, cmd=None):
+        Tk.Button.__init__(self, root, text=text, command=cmd)
+        self.sequence = '<Button-1>'
+        self.name = name
+        self.visible = visible
+        self.checked = checked
 
-class PlayButton(Tk.Button):
-    def __init__(self, root, cmd):
-        Tk.Button.__init__(self, root, text=u'▌▌', command=cmd)
-        mixer.play()
-
-class StopButton(Tk.Button):
-    def __init__(self, root, cmd):
-        Tk.Button.__init__(self, root, text=u'■', command=cmd)
-
-class NextButton(Tk.Button):
-    def __init__(self, root, cmd):
-        Tk.Button.__init__(self, root, text=u'↦', command=cmd)
-
-class PlaylistButton(Tk.Button):
-    def __init__(self, root, cmd):
-        Tk.Button.__init__(self, root, text=u'≡', command=cmd)
-
-class AddButton(Tk.Button):
-    def __init__(self, root, cmd):
-        Tk.Button.__init__(self, root, text=u'+', command=cmd)
+    def __str__(self):
+        return 'PlayerButton: %s, visible = %s, checked = %s' % \
+                (self.name, self.visible, self.checked)
 
 class PlayList(Tk.Listbox):
-    def __init__(self, root, cmd):
+    def __init__(self, root):
         Tk.Listbox.__init__(self, root, selectmode=Tk.SINGLE)
-        self.bind('<Double-Button-1>', cmd)
+
+    def highlight_index(self, index):
+        self.selection_clear(Tk.ACTIVE)
+        self.activate(index)
+        self.selection_set(index)
+
+    def highlight_next(self, index):
+        self.highlight_index((index + 1) % self.size())
 
 class PlayerMenu(Tk.Menu):
     def __init__(self):
@@ -57,8 +52,5 @@ class PlayerSlider(Tk.Scale):
 
 class VolumeSlider(Tk.Scale):
     def __init__(self, root):
-        Tk.Scale.__init__(self, root, from_=0, to=100, orient=Tk.HORIZONTAL, command=self._set_volume)
-        self.mixer = mixer
+        Tk.Scale.__init__(self, root, from_=0, to=100, orient=Tk.HORIZONTAL, command=None)
 
-    def _set_volume(self, value):
-        mixer.set_volume(float(value)/100)

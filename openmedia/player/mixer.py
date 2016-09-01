@@ -16,7 +16,8 @@ def init(song_list):
     global track_list, song_index, total_tracks, current_song, is_paused
     track_list = [Track(song) for song in song_list]
     mixer.init()
-    song_index = 0
+    set_volume(0.0)
+    song_index = -1
     total_tracks = len(track_list)
     current_song = _get_next_song()
     is_paused = False
