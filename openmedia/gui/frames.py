@@ -26,6 +26,7 @@ class PlayerFrame(Tk.Frame):
             button.bind(button.sequence, getattr(self, '_' + button.name + '_handler'))
         self.f_control.s_volume.bind('<B1-Motion>', self._set_volume)
         self.f_playlist.l_playlist.bind('<Double-Button-1>', self._play)
+        self.f_progress.set_alarm(self._progress)
 
     def _play_pause_handler(self, event):
         if not mixer.is_paused and not mixer.is_stopped:
@@ -44,7 +45,9 @@ class PlayerFrame(Tk.Frame):
             self._play_pause_handler(event)
         list_box = self.f_playlist.l_playlist
         list_box.highlight_next(mixer.song_index)
+        self.f_progress.set(0)
         mixer.play_next()
+        self.f_progress.set_max(mixer.get_song_duration())
 
     def _show_hide_handler(self, event):
         if event.widget.checked is None:
@@ -70,6 +73,17 @@ class PlayerFrame(Tk.Frame):
 
     def _set_volume(self, event):
         mixer.set_volume(float(event.widget.get())/100)
+
+    def _progress(self):
+        bar = self.f_progress
+        new_value = bar.get()+1
+        if new_value <= mixer.get_song_duration():
+            bar.set(new_value)
+            bar.set_alarm(self._progress)
+        else:
+            control = self.f_control
+            self._play_next_handler(control.buttons[control.PLAY])
+        
 
 class _PlaylistFrame(Tk.Frame):
     _button_data = [('show_hide', u'≡', False, True),
@@ -123,5 +137,18 @@ class _StatusFrame(Tk.Frame):
 class _ProgressFrame(Tk.Frame):
     def __init__(self, root):
         Tk.Frame.__init__(self, root)
-        self.s_progress = widgets.PlayerSlider(self, to=100)
+        self.s_progress = widgets.PlayerSlider(self, to=mixer.get_song_duration())
         self.s_progress.grid()
+
+    def set_alarm(self, callback):
+        self.s_progress.after(1000, callback)
+
+    def get(self):
+        return self.s_progress.get()
+
+    def set(self, value):
+        self.s_progress.set(value)
+        
+    def set_max(self, value):
+        self.s_progress.config(to=mixer.get_song_duration())
+        
