@@ -10,6 +10,7 @@ class InvalidWidgetStateException(Exception):
 class PlayerFrame(Tk.Frame):
     def __init__(self, root):
         Tk.Frame.__init__(self, root)
+        self.is_progress_set = False
         self.f_control = _ControlFrame(self)
         self.f_progress = _ProgressFrame(self)
         self.f_playlist = _PlaylistFrame(self)
@@ -25,9 +26,15 @@ class PlayerFrame(Tk.Frame):
         for button in self.f_playlist.buttons:
             button.bind(button.sequence, getattr(self, '_' + button.name + '_handler'))
         self.f_control.s_volume.bind('<B1-Motion>', self._set_volume)
-        self.f_progress.s_progress.bind('<B1-Motion>', self._skip)
+        self.f_progress.s_progress.bind('<ButtonRelease-1>', self._skip)
         self.f_playlist.l_playlist.bind('<Double-Button-1>', self._play)
         self.f_progress.set_alarm(self._progress)
+
+    def _update_play_icon(self, button):
+        if not mixer.is_paused and not mixer.is_stopped:
+            button.config(text=u'▶')
+        else:
+            button.config(text=u'▌▌')
 
     def _play_pause(self, button):
         if not mixer.is_paused and not mixer.is_stopped:
@@ -46,14 +53,19 @@ class PlayerFrame(Tk.Frame):
         mixer.stop()
         self.f_progress.set(0)
 
-    def _play_next_handler(self, event):
+    def _play_next(self, button):
         if mixer.is_paused:
-            self._play_pause_handler(event)
+            self._play_pause(self.f_control.buttons[_ControlFrame.PLAY])
         list_box = self.f_playlist.l_playlist
         list_box.highlight_next(mixer.song_index)
         self.f_progress.set(0)
         mixer.play_next()
         self.f_progress.set_max(mixer.get_song_duration())
+        if not self.is_progress_set:
+            self.f_progress.set_alarm(self._progress)
+
+    def _play_next_handler(self, event):
+        self._play_next(event.widget)
 
     def _show_hide_handler(self, event):
         if event.widget.checked is None:
@@ -71,32 +83,48 @@ class PlayerFrame(Tk.Frame):
     def _play(self, event):
         mixer.stop()
         mixer.play(self.f_playlist.l_playlist.get(Tk.ACTIVE))
+        self.f_control.buttons[_ControlFrame.PLAY].config(text=u'▌▌')
         progress = self.f_progress
         progress.set(0)
         progress.set_max(mixer.get_song_duration())
+        if not self.is_progress_set:
+            self.f_progress.set_alarm(self._progress)
 
     def _add_handler(self, event):
         self.filename = os.path.basename(tkFileDialog.askopenfilename())
-        self.f_playlist.l_playlist.insert(Tk.END, self.filename)
+        self.f_playlist.l_playlist.add_track(self.filename)
         mixer.add(self.filename)
 
     def _set_volume(self, event):
-        mixer.set_volume(float(event.widget.get())/100)
+        mixer.set_volume(float(event.widget.get()) / 100)
 
     def _progress(self):
+        self.is_progress_set = False
         bar = self.f_progress
         new_value = bar.get()+1
         if new_value < mixer.get_song_duration():
-            if not mixer.is_stopped and not mixer.is_paused:            
+            if not mixer.is_stopped and not mixer.is_paused:
                 bar.set(new_value)
+                self.is_progress_set = True
                 bar.set_alarm(self._progress)
         else:
             control = self.f_control
-            self._play_next_handler(control.buttons[control.PLAY])
+            self._play_next([_ControlFrame.NEXT])
 
     def _skip(self, event):
         value = self.f_progress.get()
         mixer.skip(value)
+
+    # XXX
+    def open_file(self):
+        self.filename = tkFileDialog.askopenfilename()
+        mixer.stop()
+        mixer.init([self.filename])
+        self.f_playlist.l_playlist.clear()
+        self.f_playlist.l_playlist.add_track(os.path.basename(self.filename))
+        self.f_playlist.l_playlist.highlight_next(mixer.song_index)
+        mixer.set_volume(float(self.f_control.s_volume.get()) / 100)
+        mixer.play()
 
 class _PlaylistFrame(Tk.Frame):
     _button_data = [('show_hide', u'≡', False, True),
@@ -116,7 +144,7 @@ class _PlaylistFrame(Tk.Frame):
     def _create_playlist(self):
         self.l_playlist = widgets.PlayList(self)
         for track in mixer.track_list:
-            self.l_playlist.insert(Tk.END, os.path.basename(track.get_path()))
+            self.l_playlist.add_track(os.path.basename(track.get_path()))
         self.l_playlist.highlight_index(0)
 
 for index, field in enumerate(_PlaylistFrame._button_names.split(' ')):
@@ -136,9 +164,9 @@ class _ControlFrame(Tk.Frame):
         self.s_volume = widgets.VolumeSlider(self)
         for index, button in enumerate(self.buttons):
             if button.visible:
-                button.grid(row=0, column=index)
+                button.grid(row=0, column=index, padx=2)
         self.s_volume= widgets.VolumeSlider(self)
-        self.s_volume.grid(row=0, column=6)
+        self.s_volume.grid(row=0, column=4, ipady=8)
 
 for index, field in enumerate(_ControlFrame._button_names.split(' ')):
     setattr(_ControlFrame, field, index)
@@ -151,7 +179,7 @@ class _ProgressFrame(Tk.Frame):
     def __init__(self, root):
         Tk.Frame.__init__(self, root)
         self.s_progress = widgets.PlayerSlider(self, to=mixer.get_song_duration())
-        self.s_progress.grid()
+        self.s_progress.grid(row=0, column=0, ipady=10)
 
     def set_alarm(self, callback):
         self.s_progress.after(1000, callback)

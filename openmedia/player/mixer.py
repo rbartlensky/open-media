@@ -23,7 +23,7 @@ def init(song_list):
     is_paused = False
 
 def play(filename=None):
-    global is_paused, is_stopped, current_song
+    global is_paused, is_stopped, song_index, current_song
     if filename:
         song_index = get_song_index(filename)
         current_song = track_list[song_index]

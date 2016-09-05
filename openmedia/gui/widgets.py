@@ -28,17 +28,17 @@ class PlayList(Tk.Listbox):
     def highlight_next(self, index):
         self.highlight_index((index + 1) % self.size())
 
-class PlayerMenu(Tk.Menu):
-    def __init__(self):
-        Tk.Menu.__init__(self)
-        self._create_sub_menu("File", [{"label" : "Open", "command" : self._open_file},\
-                                       {"label" : "Quit", "command" : Tk.Frame().quit}])
+    def add_track(self, name):
+        self.insert(Tk.END, name)
 
-    def _open_file(self):
-        self.filename = tkFileDialog.askopenfilename()
-        mixer.stop()
-        mixer.init([self.filename])
-        mixer.play()
+    def clear(self):
+        self.delete(0, Tk.END)
+
+class PlayerMenu(Tk.Menu):
+    def __init__(self, open_file):
+        Tk.Menu.__init__(self)
+        self._create_sub_menu("File", [{"label" : "Open", "command" : open_file},\
+                                       {"label" : "Quit", "command" : Tk.Frame().quit}])
 
     def _create_sub_menu(self, label, commands):
         sub_menu = Tk.Menu()
