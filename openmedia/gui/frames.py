@@ -25,6 +25,7 @@ class PlayerFrame(Tk.Frame):
         for button in self.f_playlist.buttons:
             button.bind(button.sequence, getattr(self, '_' + button.name + '_handler'))
         self.f_control.s_volume.bind('<B1-Motion>', self._set_volume)
+        self.f_progress.s_progress.bind('<B1-Motion>', self._skip)
         self.f_playlist.l_playlist.bind('<Double-Button-1>', self._play)
         self.f_progress.set_alarm(self._progress)
 
@@ -92,6 +93,10 @@ class PlayerFrame(Tk.Frame):
         else:
             control = self.f_control
             self._play_next_handler(control.buttons[control.PLAY])
+
+    def _skip(self, event):
+        value = self.f_progress.get()
+        mixer.skip(value)
 
 class _PlaylistFrame(Tk.Frame):
     _button_data = [('show_hide', u'≡', False, True),
