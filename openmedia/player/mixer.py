@@ -80,3 +80,10 @@ def add(track_path):
     global track_list, total_tracks
     total_tracks += 1
     track_list.append(Track(track_path))
+
+def skip(amount):
+    duration = get_song_duration()
+    if amount > duration:
+        play_next()
+    else:
+        mixer.music.play(-1, amount)
