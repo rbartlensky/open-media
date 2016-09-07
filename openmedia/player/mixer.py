@@ -87,3 +87,9 @@ def skip(amount):
         play_next()
     else:
         mixer.music.play(-1, amount)
+
+def get_pos():
+    if is_stopped:
+        return 0
+    else:
+        return mixer.music.get_pos()

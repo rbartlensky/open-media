@@ -10,7 +10,6 @@ class InvalidWidgetStateException(Exception):
 class PlayerFrame(Tk.Frame):
     def __init__(self, root):
         Tk.Frame.__init__(self, root)
-        self.is_progress_set = False
         self.f_control = _ControlFrame(self)
         self.f_progress = _ProgressFrame(self)
         self.f_playlist = _PlaylistFrame(self)
@@ -43,7 +42,6 @@ class PlayerFrame(Tk.Frame):
         else:
             button.config(text=u'▌▌')
             mixer.play()
-            self.f_progress.set_alarm(self._progress)
 
     def _play_pause_handler(self, event):
         self._play_pause(event.widget)
@@ -61,8 +59,6 @@ class PlayerFrame(Tk.Frame):
         self.f_progress.set(0)
         mixer.play_next()
         self.f_progress.set_max(mixer.get_song_duration())
-        if not self.is_progress_set:
-            self.f_progress.set_alarm(self._progress)
 
     def _play_next_handler(self, event):
         self._play_next(event.widget)
@@ -87,8 +83,6 @@ class PlayerFrame(Tk.Frame):
         progress = self.f_progress
         progress.set(0)
         progress.set_max(mixer.get_song_duration())
-        if not self.is_progress_set:
-            self.f_progress.set_alarm(self._progress)
 
     def _add_handler(self, event):
         self.filename = os.path.basename(tkFileDialog.askopenfilename())
@@ -99,17 +93,14 @@ class PlayerFrame(Tk.Frame):
         mixer.set_volume(float(event.widget.get()) / 100)
 
     def _progress(self):
-        self.is_progress_set = False
         bar = self.f_progress
-        new_value = bar.get()+1
+        new_value = mixer.get_pos() / 1000
         if new_value < mixer.get_song_duration():
-            if not mixer.is_stopped and not mixer.is_paused:
-                bar.set(new_value)
-                self.is_progress_set = True
-                bar.set_alarm(self._progress)
+            bar.set(int(new_value))
         else:
             control = self.f_control
             self._play_next([_ControlFrame.NEXT])
+        bar.set_alarm(self._progress)
 
     def _skip(self, event):
         value = self.f_progress.get()
