@@ -5,8 +5,8 @@ import tkFileDialog
 from openmedia.player import mixer
 
 class PlayerButton(Tk.Button):
-    def __init__(self, root, text, name, visible=True, checked=None, cmd=None):
-        Tk.Button.__init__(self, root, text=text, command=cmd)
+    def __init__(self, root, text, name, padx=15, visible=True, checked=None, cmd=None):
+        Tk.Button.__init__(self, root, padx=padx, text=text, command=cmd)
         self.sequence = '<Button-1>'
         self.name = name
         self.visible = visible
@@ -48,9 +48,12 @@ class PlayerMenu(Tk.Menu):
 
 class PlayerSlider(Tk.Scale):
     def __init__(self, root, to):
-        Tk.Scale.__init__(self, root, from_=0, to=to, orient=Tk.HORIZONTAL)
+        Tk.Scale.__init__(self, root, from_=0, to=to, length=250, width=10,\
+                          orient=Tk.HORIZONTAL)
 
 class VolumeSlider(Tk.Scale):
     def __init__(self, root):
-        Tk.Scale.__init__(self, root, from_=0, to=100, orient=Tk.HORIZONTAL, command=None)
+        Tk.Scale.__init__(self, root, from_=0, to=100, orient=Tk.HORIZONTAL,\
+                          width=21, command=None)
+
 
