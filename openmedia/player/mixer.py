@@ -11,19 +11,21 @@ total_tracks = 0
 current_song = None
 is_paused = False
 is_stopped = False
+offset = 0
 
 def init(song_list):
     global track_list, song_index, total_tracks, current_song, is_paused
     track_list = [Track(song) for song in song_list]
     mixer.init()
-    set_volume(0.0)
+    set_volume(0.5)
     song_index = -1
     total_tracks = len(track_list)
     current_song = _get_next_song()
     is_paused = False
 
 def play(filename=None):
-    global is_paused, is_stopped, song_index, current_song
+    global is_paused, is_stopped, song_index, current_song, offset
+    offset = 0
     if filename:
         song_index = get_song_index(filename)
         current_song = track_list[song_index]
@@ -61,8 +63,9 @@ def set_volume(volume):
         raise InvalidVolumeError(volume)
 
 def play_next():
-    global current_song
+    global current_song, offset
     stop()
+    offset = 0
     current_song = _get_next_song()
     play()
 
@@ -82,14 +85,17 @@ def add(track_path):
     track_list.append(Track(track_path))
 
 def skip(amount):
+    global offset
     duration = get_song_duration()
     if amount > duration:
         play_next()
     else:
+        offset = amount * 1000
         mixer.music.play(-1, amount)
 
 def get_pos():
+    global offset
     if is_stopped:
         return 0
     else:
-        return mixer.music.get_pos()
+        return mixer.music.get_pos() + offset

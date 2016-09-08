@@ -156,8 +156,9 @@ class _ControlFrame(Tk.Frame):
         for index, button in enumerate(self.buttons):
             if button.visible:
                 button.grid(row=0, column=index, padx=2)
-        self.s_volume= widgets.VolumeSlider(self)
+        self.s_volume = widgets.VolumeSlider(self)
         self.s_volume.grid(row=0, column=4, ipady=8)
+        self.s_volume.set(50)
 
 for index, field in enumerate(_ControlFrame._button_names.split(' ')):
     setattr(_ControlFrame, field, index)
