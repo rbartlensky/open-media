@@ -6,41 +6,39 @@ class InvalidVolumeError(Exception):
     pass
 
 track_list = []
-song_index = 0
-total_tracks = 0
-current_song = None
+curr_track_index = -1
+track_count = 0
+current_track = None
 is_paused = False
 is_stopped = False
 offset = 0
 
 def init(song_list):
-    global track_list, song_index, total_tracks, current_song, is_paused
+    global track_list, track_count, current_track
     track_list = [Track(song) for song in song_list]
     mixer.init()
     set_volume(0.5)
-    song_index = -1
-    total_tracks = len(track_list)
-    current_song = _get_next_song()
-    is_paused = False
+    track_count = len(track_list)
+    current_track = _get_next_song()
 
-def play(filename=None):
-    global is_paused, is_stopped, song_index, current_song, offset
-    offset = 0
-    if filename:
-        song_index = get_song_index(filename)
-        current_song = track_list[song_index]
+def play(path=None):
+    global is_paused, is_stopped, curr_track_index, current_track, offset
+    if path:
+        curr_track_index = get_song_index(path)
+        current_track = track_list[curr_track_index]
     if not is_paused or is_stopped:
         is_stopped = False
-        mixer.music.load(current_song.get_path())
+        offset = 0
+        mixer.music.load(current_track.get_path())
         mixer.music.play()
     else:
         is_paused = False
         is_stopped = False
         mixer.music.unpause()
 
-def get_song_index(filename):
+def get_song_index(path):
     for idx, track in enumerate(track_list):
-        if filename == os.path.basename(track.get_path()):
+        if path == os.path.basename(track.get_path()):
             return idx
     return None
 
@@ -63,39 +61,46 @@ def set_volume(volume):
         raise InvalidVolumeError(volume)
 
 def play_next():
-    global current_song, offset
+    global current_track, offset
     stop()
     offset = 0
-    current_song = _get_next_song()
+    current_track = _get_next_song()
     play()
 
 def _get_next_song():
-    global track_list, song_index, total_tracks
-    song_index = (song_index + 1) % total_tracks
-    song = track_list[song_index]
+    global track_list, curr_track_index, track_count
+    curr_track_index = (curr_track_index + 1) % track_count
+    song = track_list[curr_track_index]
     return song
 
 def get_song_duration():
-    global current_song
-    return current_song.duration
+    global current_track
+    return current_track.duration
 
 def add(track_path):
-    global track_list, total_tracks
-    total_tracks += 1
+    global track_list, track_count
+    track_count += 1
     track_list.append(Track(track_path))
 
 def skip(amount):
     global offset
     duration = get_song_duration()
-    if amount > duration:
+    if amount >= duration:
         play_next()
     else:
         offset = amount * 1000
-        mixer.music.play(-1, amount)
+        mixer.music.play(0, amount)
 
 def get_pos():
     global offset
+    pos = mixer.music.get_pos()
     if is_stopped:
         return 0
+    elif pos == -1:
+        return -1
     else:
-        return mixer.music.get_pos() + offset
+        return pos + offset
+
+def is_playing():
+    global is_paused, is_stopped
+    return not is_paused and not is_stopped

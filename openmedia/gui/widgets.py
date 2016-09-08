@@ -18,7 +18,8 @@ class PlayerButton(Tk.Button):
 
 class PlayList(Tk.Listbox):
     def __init__(self, root, yscrollcommand):
-        Tk.Listbox.__init__(self, root, yscrollcommand=yscrollcommand, selectmode=Tk.SINGLE)
+        Tk.Listbox.__init__(self, root, yscrollcommand=yscrollcommand,\
+                            selectmode=Tk.SINGLE)
 
     def highlight_index(self, index):
         self.selection_clear(Tk.ACTIVE)

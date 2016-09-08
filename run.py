@@ -7,7 +7,6 @@ def main(args):
     player = PlayerApp()
 
 if __name__ == "__main__":
-    print sys.argv
     if len(sys.argv) < 2:
         print '[ERROR] Need one or more files to play\n'\
                  'Usage: ./run.py file1 [file_list]'

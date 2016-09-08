@@ -1,5 +1,6 @@
 from audiotools import open, Filename, UnsupportedFile
 import mutagen
+from math import ceil
 
 class Track(object):
 
