@@ -69,10 +69,12 @@ class PlayerFrame(Tk.Frame):
                                               str(event.widget))
         if event.widget.checked:
             self.f_playlist.l_playlist.grid_remove()
+            self.f_playlist.yscroll.grid_remove()
             self.f_playlist.buttons[_PlaylistFrame.ADD].grid_remove()
             event.widget.checked = False
         else:
             self.f_playlist.l_playlist.grid(row=0, column=0)
+            self.f_playlist.yscroll.grid(row=0, column=1, sticky='ns')
             self.f_playlist.buttons[_PlaylistFrame.ADD].grid(row=1, column=1)
             event.widget.checked = True
 
@@ -96,9 +98,8 @@ class PlayerFrame(Tk.Frame):
         bar = self.f_progress
         new_value = mixer.get_pos() / 1000
         if new_value < mixer.get_song_duration():
-            bar.set(int(new_value))
+            bar.set(new_value)
         else:
-            control = self.f_control
             self._play_next([_ControlFrame.NEXT])
         bar.set_alarm(self._progress)
 
@@ -124,6 +125,7 @@ class _PlaylistFrame(Tk.Frame):
 
     def __init__(self, root):
         Tk.Frame.__init__(self, root)
+        self.yscroll = Tk.Scrollbar(root)
         self.buttons = [widgets.PlayerButton(self, text=text,\
                         name=name, checked=checked, visible=visible) \
                         for name, text, checked, visible in self._button_data]
@@ -131,9 +133,10 @@ class _PlaylistFrame(Tk.Frame):
             if button.visible:
                 button.grid(row=1, column=index)
         self._create_playlist()
+        self.yscroll.config(command=self.l_playlist.yview)
 
     def _create_playlist(self):
-        self.l_playlist = widgets.PlayList(self)
+        self.l_playlist = widgets.PlayList(self, yscrollcommand=self.yscroll.set)
         for track in mixer.track_list:
             self.l_playlist.add_track(os.path.basename(track.get_path()))
         self.l_playlist.highlight_index(0)
