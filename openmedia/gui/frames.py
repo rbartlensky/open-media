@@ -20,7 +20,10 @@ class PlayerFrame(Tk.Frame):
             self.grid_columnconfigure(i, weight=1)
             self.grid_rowconfigure(i, weight=1)
         self._bind_all()
-        mixer.play()
+        if mixer.track_count:
+            mixer.play()
+        else:
+            self._update_play_icon(self.f_control.buttons[_ControlFrame.PLAY])
 
     def _bind_all(self):
         for button in self.f_control.buttons:
@@ -100,7 +103,7 @@ class PlayerFrame(Tk.Frame):
         new_value = mixer.get_pos() / 1000
         if new_value != -1:
             self.f_progress.set_progress(new_value)
-        else:
+        elif mixer.track_count:
             self._play_next([_ControlFrame.NEXT])
         self.f_progress.set_alarm(self._progress)
 

@@ -19,22 +19,24 @@ def init(song_list):
     mixer.init()
     set_volume(0.5)
     track_count = len(track_list)
-    current_track = _get_next_song()
+    if track_count:
+        current_track = _get_next_song()
 
 def play(path=None):
-    global is_paused, is_stopped, curr_track_index, current_track, offset
-    if path:
-        curr_track_index = get_song_index(path)
-        current_track = track_list[curr_track_index]
-    if not is_paused or is_stopped:
-        is_stopped = False
-        offset = 0
-        mixer.music.load(current_track.get_path())
-        mixer.music.play()
-    else:
-        is_paused = False
-        is_stopped = False
-        mixer.music.unpause()
+    global track_count, is_paused, is_stopped, curr_track_index, current_track, offset
+    if track_count:
+        if path:
+            curr_track_index = get_song_index(path)
+            current_track = track_list[curr_track_index]
+        if not is_paused or is_stopped:
+            is_stopped = False
+            offset = 0
+            mixer.music.load(current_track.get_path())
+            mixer.music.play()
+        else:
+            is_paused = False
+            is_stopped = False
+            mixer.music.unpause()
 
 def get_song_index(path):
     for idx, track in enumerate(track_list):
@@ -69,13 +71,19 @@ def play_next():
 
 def _get_next_song():
     global track_list, curr_track_index, track_count
-    curr_track_index = (curr_track_index + 1) % track_count
-    song = track_list[curr_track_index]
-    return song
+    if track_count:
+        curr_track_index = (curr_track_index + 1) % track_count
+        song = track_list[curr_track_index]
+        return song
+    else:
+        return None
 
 def get_song_duration():
     global current_track
-    return current_track.duration
+    if current_track:
+        return current_track.duration
+    else:
+        return 0
 
 def add(track_path):
     global track_list, track_count

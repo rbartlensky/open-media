@@ -1,14 +1,21 @@
-import sys, time
+import sys, argparse
 from openmedia.player import mixer
 from openmedia.gui.playerapp import PlayerApp
 
 def main(args):
-    mixer.init(args[1:])
+    mixer.init(args)
     player = PlayerApp()
 
-if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print '[ERROR] Need one or more files to play\n'\
-                 'Usage: ./run.py file1 [file_list]'
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='Play audio files.')
+    parser.add_argument('--no-gui',
+                        help='run the player without a graphical user interface',
+                        action='store_true')
+    parser.add_argument('-t', '--track-list',
+                        help='the list of tracks to play',
+                        default=[], nargs='+')
+    args = parser.parse_args()
+    if args.no_gui:
+        pass
     else:
-        main(sys.argv)
+        main(args.track_list)
