@@ -13,10 +13,11 @@ def print_playlist(args):
         call(['clear'])
         print 'Type "h" for help.\nYour playlist is:'
         for arg in args:
-            if arg == os.path.basename(mixer.current_track.get_path()):
-                print '{:<8}{:}'.format('*', arg)
+            filename = os.path.basename(arg)
+            if filename  == os.path.basename(mixer.current_track.get_path()):
+                print '{:<8}{:}'.format('*', filename)
             else:
-                print '{:<8}{:}'.format('', arg)
+                print '{:<8}{:}'.format('', filename)
         if mixer.is_playing():
             print 'Playing'
         elif mixer.is_paused:
