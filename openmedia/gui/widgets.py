@@ -27,7 +27,8 @@ class PlayList(Tk.Listbox):
         self.selection_set(index)
 
     def highlight_next(self, index):
-        self.highlight_index((index + 1) % self.size())
+        if self.size():
+            self.highlight_index((index + 1) % self.size())
 
     def add_track(self, name):
         self.insert(Tk.END, name)
