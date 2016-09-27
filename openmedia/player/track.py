@@ -1,20 +1,20 @@
 from audiotools import open, Filename, UnsupportedFile
 import mutagen
-from math import ceil
+import os
 
 class Track(object):
 
     def __init__(self, file_path):
-        self.__file_path = file_path
+        self.__file_path = os.path.expanduser(file_path)
         try:
-            self.track_file = open(file_path)
+            self.track_file = open(self.__file_path)
             self.duration = float(self.track_file.seconds_length())
             self.metadata = self.track_file.get_metadata()
         except UnsupportedFile:
             if file_path.endswith(".mp3"):
                 from mutagen.mp3 import MP3, MPEGInfo
                 from mutagen import File
-                self.track_file = File(file_path)
+                self.track_file = File(self.__file_path)
                 self.metadata = Metadata(self.track_file)
                 self.duration = self.track_file.info.length
             else:
