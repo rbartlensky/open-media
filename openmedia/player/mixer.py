@@ -13,8 +13,20 @@ is_paused = False
 is_stopped = False
 offset = 0
 
+def reset_values():
+    global track_list, curr_track_index, track_count, \
+           current_track, is_paused, is_stopped, offset
+    track_list = []
+    curr_track_index = -1
+    track_count = 0
+    current_track = None
+    is_paused = False
+    is_stopped = False
+    offset = 0
+
 def init(song_list):
     global track_list, track_count, current_track
+    reset_values()
     track_list = [Track(song) for song in song_list]
     mixer.init()
     set_volume(0.5)
@@ -100,7 +112,7 @@ def skip(amount):
         mixer.music.play(0, amount)
 
 def get_pos():
-    global offset
+    global offset, is_stopped
     pos = mixer.music.get_pos()
     if is_stopped:
         return 0
