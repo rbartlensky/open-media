@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import sys, argparse, terminal_player
 from openmedia.player import mixer
 from openmedia.gui.playerapp import PlayerApp
