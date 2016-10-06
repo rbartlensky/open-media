@@ -66,6 +66,7 @@ def start_player(args):
                 playlist.append(track)
             print_playlist(playlist)
         elif input_char == 'q':
+            mixer.stop()
             break
         else:
             print "Unknown command '%s'" % input_char

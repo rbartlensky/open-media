@@ -14,7 +14,7 @@ class Observable(object):
             self._observers.append(observer)
 
     def notify_observers(self, info):
-        for obs in selfobservers:
+        for obs in self._observers:
             obs.update(info)
 
 class Observer(object):
