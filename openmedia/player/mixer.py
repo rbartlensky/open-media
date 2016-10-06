@@ -1,5 +1,6 @@
 from pygame import mixer
 from track import Track
+from playerthread import PlayerThread
 import os
 
 class InvalidVolumeError(Exception):
@@ -12,6 +13,7 @@ current_track = None
 is_paused = False
 is_stopped = False
 offset = 0
+player_thread = PlayerThread()
 
 def reset_values():
     global track_list, curr_track_index, track_count, \
@@ -45,6 +47,8 @@ def play(path=None):
             offset = 0
             mixer.music.load(current_track.get_path())
             mixer.music.play()
+            if not player_thread.isAlive():
+                player_thread.start()
         else:
             is_paused = False
             is_stopped = False
