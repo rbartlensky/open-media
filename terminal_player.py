@@ -14,7 +14,7 @@ def print_playlist(args):
         print 'Type "h" for help.\nYour playlist is:'
         for arg in args:
             filename = os.path.basename(arg)
-            if filename  == os.path.basename(mixer.current_track.get_path()):
+            if filename  == os.path.basename(mixer.current_track.file_path):
                 print '{:<8}{:}'.format('*', filename)
             else:
                 print '{:<8}{:}'.format('', filename)
