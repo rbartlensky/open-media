@@ -13,7 +13,7 @@ PLAY_EVENT, PAUSE_EVENT, STOP_EVENT,\
 track_list = []
 curr_track_index, track_count, offset = -1, 0, 0
 current_track = None
-is_paused, is_stopped = False, False
+is_paused, is_stopped = False, True
 player_thread = PlayerThread()
 _observable = Observable()
 

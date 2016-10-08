@@ -1,6 +1,6 @@
 from threading import Thread
-import mixer
 
+import mixer
 import time
 
 class PlayerThread(Thread):
@@ -9,11 +9,8 @@ class PlayerThread(Thread):
         Thread.__init__(self)
 
     def run(self):
-        while True:
+        while not mixer.is_stopped:
             pos = mixer.get_pos()
+            mixer.notify_observers(mixer.SLIDER_EVENT)
             if mixer.is_playing() and pos == -1:
                 mixer.play_next()
-            elif mixer.is_paused and pos != -1:
-                pass
-            elif mixer.is_stopped:
-                break
