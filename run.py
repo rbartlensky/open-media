@@ -10,6 +10,7 @@ def main(no_gui=True, args=[]):
         terminal_player.run(args)
     else:
         player = PlayerApp()
+    mixer.player_thread.keep_running = False
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Play audio files.')
