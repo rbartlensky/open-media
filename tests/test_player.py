@@ -22,7 +22,7 @@ class TestPlayerFunctionality(unittest.TestCase):
         self.assertFalse(mixer.is_paused)
         self.assertFalse(mixer.is_stopped)
         self.assertEqual(mixer.curr_track_index, 0)
-        self.assertEqual(mixer.current_track.get_path(),
+        self.assertEqual(mixer.current_track.file_path,
                          self.track_paths[0])
 
     def test_pause(self):
@@ -32,7 +32,7 @@ class TestPlayerFunctionality(unittest.TestCase):
         self.assertTrue(mixer.is_paused)
         self.assertFalse(mixer.is_stopped)
         self.assertEqual(mixer.curr_track_index, 0)
-        self.assertEqual(mixer.current_track.get_path(),
+        self.assertEqual(mixer.current_track.file_path,
                          self.track_paths[0])
 
     def test_stop(self):
@@ -42,7 +42,7 @@ class TestPlayerFunctionality(unittest.TestCase):
         self.assertFalse(mixer.is_paused)
         self.assertTrue(mixer.is_stopped)
         self.assertEqual(mixer.curr_track_index, 0)
-        self.assertEqual(mixer.current_track.get_path(),
+        self.assertEqual(mixer.current_track.file_path,
                          self.track_paths[0])
         
 
@@ -54,7 +54,7 @@ class TestPlayerFunctionality(unittest.TestCase):
         self.assertFalse(mixer.is_paused)
         self.assertFalse(mixer.is_stopped)
         self.assertEqual(mixer.curr_track_index, 0)
-        self.assertEqual(mixer.current_track.get_path(),
+        self.assertEqual(mixer.current_track.file_path,
                          self.track_paths[0])
 
     def test_get_song_index(self):
@@ -69,19 +69,19 @@ class TestPlayerFunctionality(unittest.TestCase):
     def test_play_next(self):
         mixer.play()
         self.assertEqual(mixer.curr_track_index, 0)
-        self.assertEqual(mixer.current_track.get_path(),
+        self.assertEqual(mixer.current_track.file_path,
                          self.track_paths[0])
         for i in xrange(1, 4):
             mixer.play_next()
             self.assertEqual(mixer.curr_track_index, i % 3)
-            self.assertEqual(mixer.current_track.get_path(),
+            self.assertEqual(mixer.current_track.file_path,
                              self.track_paths[i % 3])
 
     def test_add(self):
         song_path = os.path.join(self.test_folder, "4.wav")
         mixer.add(song_path)
         self.assertEqual(mixer.track_count, 4)
-        self.assertEqual(mixer.track_list[3].get_path(), song_path)      
+        self.assertEqual(mixer.track_list[3].file_path, song_path)      
 
     def test_skip(self):
         mixer.play()
@@ -89,14 +89,15 @@ class TestPlayerFunctionality(unittest.TestCase):
         self.assertEqual(mixer.get_pos()/1000, 1)
     
     def test_get_pos(self):
-        self.assertEqual(mixer.get_pos(), -1)
-        mixer.play()
         self.assertEqual(mixer.get_pos(), 0)
+        mixer.play()
         mixer.stop()
         self.assertEqual(mixer.get_pos(), 0)
         mixer.play()
         mixer.skip(1)
+        mixer.pause()
         self.assertEqual(mixer.get_pos()/1000, 1)
     
     def tearDown(self):
         mixer.stop()
+        mixer.player_thread.keep_running = False
