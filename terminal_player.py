@@ -72,7 +72,7 @@ def start_player(args):
             print "Unknown command '%s'" % input_char
 
 def run(args=[]):
-    mixer.init(args)
     mixer.play()
     runner = Thread(target=start_player, args=(args,))
     runner.start()
+    runner.join()
