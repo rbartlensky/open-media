@@ -17,24 +17,32 @@ class PlayerFrame(Gtk.Window, Observer):
         mixer.add_observer(self)
 
         grid = Gtk.Grid()
+        
         grid.set_row_spacing(5)
 
         hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL)
         hbox.set_spacing(5)
-        hbox.set_hexpand(True)
-        hbox.set_vexpand(True)
+        
+        self.play_button = Gtk.Button(label=u'▶')
+        self.play_button.connect("clicked", self._play_pause)
 
-        self.play = Gtk.Button(label=u'▶')
-        self.play.connect("clicked", self._play_pause)
-        self.stop = Gtk.Button(label="stop")
-        self.stop.connect("clicked", self._stop)
-        self.next_track = Gtk.Button(label="next")
+        self.stop_button = Gtk.Button(label="stop")
+        self.stop_button.connect("clicked", self._stop)
 
-        hbox.pack_start(self.play, True, True, 0)
-        hbox.pack_start(self.stop, True, True, 0)
-        hbox.pack_start(self.next_track, True, True, 0)
+        self.play_next_button = Gtk.Button(label="next")
+
+        self.volume_button = Gtk.VolumeButton()
+        self.volume_button.set_value(0.5)
+        self.volume_button.connect("value-changed", self._volume)
+
+        hbox.pack_start(self.play_button, False, False, 0)
+        hbox.pack_start(self.stop_button, False, False, 0)
+        hbox.pack_start(self.play_next_button, False, False, 0)
+        hbox.pack_start(self.volume_button, False, False, 0)
+
+        grid.add(Gtk.Stack())
         grid.add(hbox)
-
+        
         self.add(grid)
 
         self.play_next_button = Gtk.Button(label=">>")
@@ -121,9 +129,9 @@ class PlayerFrame(Gtk.Window, Observer):
 
     def update(self, event, event_type):
         if event_type == mixer.PLAY_EVENT or event_type == mixer.NEXT_EVENT:
-            self.play.get_children()[0].set_text(u'▌▌')
+            self.play_button.get_children()[0].set_text(u'▌▌')
         elif event_type == mixer.PAUSE_EVENT or event_type == mixer.STOP_EVENT:
-            self.play.get_children()[0].set_text('▶')
+            self.play_button.get_children()[0].set_text('▶')
 
     def _play_pause(self, widget):
         if mixer.is_playing():
@@ -134,6 +142,9 @@ class PlayerFrame(Gtk.Window, Observer):
     def _stop(self, widget):
         mixer.stop()
 
+    def _volume(self, widget, value):
+        mixer.set_volume(value)
+        
     def halt(self, window, event):
         mixer.stop()
         Gtk.main_quit()
