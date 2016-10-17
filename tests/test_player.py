@@ -97,6 +97,20 @@ class TestPlayerFunctionality(unittest.TestCase):
         mixer.skip(1)
         mixer.pause()
         self.assertEqual(mixer.get_pos()/1000, 1)
+
+    def test_reset(self):
+        obs = mixer._observable
+        player_thread = mixer.player_thread
+        mixer.reset_values()
+        self.assertEqual(len(mixer.track_list), 0)
+        self.assertEqual(mixer.curr_track_index, -1)
+        self.assertEqual(mixer.track_count, 0)
+        self.assertEqual(mixer.offset, 0)
+        self.assertEqual(mixer.current_track, None)
+        self.assertEqual(mixer.is_paused, False)
+        self.assertEqual(mixer.is_stopped, True)
+        self.assertNotEqual(obs, mixer._observable)
+        self.assertNotEqual(player_thread, mixer.player_thread)
     
     def tearDown(self):
         mixer.stop()
