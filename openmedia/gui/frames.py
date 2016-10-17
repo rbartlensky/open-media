@@ -15,35 +15,73 @@ class PlayerFrame(Gtk.Window, Observer):
         self.connect("delete-event", self.halt)
         self.set_border_width(10)
         mixer.add_observer(self)
+        self._create_control_widgets()
+        self._create_playlist()
 
         grid = Gtk.Grid()
-        
         grid.set_row_spacing(5)
+        grid.set_column_spacing(5)
 
-        hbox = Gtk.Box(Gtk.Orientation.HORIZONTAL)
+        hbox = Gtk.HBox()
         hbox.set_spacing(5)
-        
-        self.play_button = Gtk.Button(label=u'▶')
-        self.play_button.connect("clicked", self._play_pause)
 
-        self.stop_button = Gtk.Button(label="stop")
-        self.stop_button.connect("clicked", self._stop)
+        self.vbox = Gtk.VBox()
+        self.vbox.set_spacing(5)
 
-        self.play_next_button = Gtk.Button(label="next")
-
-        self.volume_button = Gtk.VolumeButton()
-        self.volume_button.set_value(0.5)
-        self.volume_button.connect("value-changed", self._volume)
+        self.vbox.pack_start(self.playlist, False, False, 0)
+        self.vbox.pack_start(self.add_track, False, False, 0)
 
         hbox.pack_start(self.play_button, False, False, 0)
         hbox.pack_start(self.stop_button, False, False, 0)
         hbox.pack_start(self.play_next_button, False, False, 0)
         hbox.pack_start(self.volume_button, False, False, 0)
+        hbox.pack_start(self.playlist_button, False, False, 0)
 
-        grid.add(Gtk.Stack())
         grid.add(hbox)
-        
+        grid.add(self.vbox)
         self.add(grid)
+
+    def _create_control_widgets(self):
+        self.play_button = Gtk.Button(label=u'▶')
+        self.play_button.connect("clicked", self._play_pause)
+
+        self.stop_button = Gtk.Button(label=u'■')
+        self.stop_button.connect("clicked", self._stop)
+
+        self.play_next_button = Gtk.Button(label=">>")
+        self.play_next_button.connect("clicked", self._play_next)
+
+        self.volume_button = Gtk.VolumeButton()
+        self.volume_button.set_value(0.5)
+        self.volume_button.connect("value-changed", self._volume)
+
+        self.playlist_button = Gtk.ToggleButton(label="=")
+        self.playlist_button.connect("clicked", self._toggle_playlist)
+
+    def _create_playlist(self):
+        self.playlist = Gtk.ListBox()
+        for track in mixer.track_list:
+            self.playlist.insert(Gtk.Label(track.metadata.track_name), len(self.playlist.get_children()))
+        self.playlist.select_row(self.playlist.get_row_at_index(0))
+        self.add_track = Gtk.Button(label="+")
+        self.add_track.connect("clicked", self._add_track)
+
+    def _add_track(self, widget):
+        dialog = Gtk.FileChooserDialog(Gtk.FileChooserAction.OPEN)
+        dialog.set_title("Add tracks to your playlist")
+        dialog.add_button("_Open", Gtk.ResponseType.OK)
+        dialog.add_button("_Cancel", Gtk.ResponseType.CANCEL)
+        dialog.set_default_response(Gtk.ResponseType.OK)
+        response = dialog.run()
+        if response == Gtk.ResponseType.OK:
+            mixer.add(dialog.get_filename())
+            self.playlist.insert(Gtk.Label(mixer.track_list[-1].metadata.track_name), len(self.playlist.get_children()))
+            self.show_all()
+        dialog.destroy()
+
+    def show(self):
+        self.show_all()
+        self.vbox.hide()
 
         self.play_next_button = Gtk.Button(label=">>")
         self.play_next_button.connect("clicked", self._play_next)
@@ -139,12 +177,25 @@ class PlayerFrame(Gtk.Window, Observer):
         else:
             mixer.play()
 
+    def _play_next(self, widget):
+        mixer.play_next()
+        row = self.playlist.get_row_at_index(mixer.curr_track_index)
+        self.playlist.select_row(row)
+        if self.vbox.is_visible():
+            self.vbox.show_all()
+
     def _stop(self, widget):
         mixer.stop()
 
     def _volume(self, widget, value):
         mixer.set_volume(value)
-        
+
+    def _toggle_playlist(self, widget):
+        if self.vbox.is_visible():
+            self.vbox.set_visible(False)
+        else:
+            self.vbox.set_visible(True)
+
     def halt(self, window, event):
         mixer.stop()
         Gtk.main_quit()

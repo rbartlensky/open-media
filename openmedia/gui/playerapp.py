@@ -6,5 +6,5 @@ from gi.repository import Gtk
 class PlayerApp(object):
     def __init__(self):
         self.f_main = frames.PlayerFrame()
-        self.f_main.show_all()
+        self.f_main.show()
         Gtk.main()
