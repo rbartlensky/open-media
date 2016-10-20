@@ -126,11 +126,11 @@ def get_pos():
     global offset, is_stopped
     pos = mixer.music.get_pos()
     if is_stopped:
-        return 0
+        return 0.0
     elif pos == -1:
-        return -1
+        return -1.0
     else:
-        return pos + offset
+        return float(pos + offset)
 
 def is_playing():
     global is_paused, is_stopped

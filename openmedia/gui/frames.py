@@ -12,11 +12,16 @@ class PlayerFrame(Gtk.Window, Observer):
     def __init__(self):
         Gtk.Window.__init__(self, title="open-media")
         Observer.__init__(self)
+        self.skipping = False
         self.connect("delete-event", self.halt)
         self.set_border_width(10)
         mixer.add_observer(self)
         self._create_control_widgets()
         self._create_playlist()
+        self.progress = Gtk.Scale()
+        self.progress.set_range(0, mixer.get_song_duration())
+        self.progress.connect("button-press-event", self._start_skip)
+        self.progress.connect("button-release-event", self._end_skip)
 
         grid = Gtk.Grid()
         grid.set_row_spacing(5)
@@ -31,14 +36,15 @@ class PlayerFrame(Gtk.Window, Observer):
         self.vbox.pack_start(self.playlist, False, False, 0)
         self.vbox.pack_start(self.add_track, False, False, 0)
 
-        hbox.pack_start(self.play_button, False, False, 0)
-        hbox.pack_start(self.stop_button, False, False, 0)
-        hbox.pack_start(self.play_next_button, False, False, 0)
-        hbox.pack_start(self.volume_button, False, False, 0)
-        hbox.pack_start(self.playlist_button, False, False, 0)
+        hbox.pack_start(self.play_button, True, False, 0)
+        hbox.pack_start(self.stop_button, True, False, 0)
+        hbox.pack_start(self.play_next_button, True, False, 0)
+        hbox.pack_start(self.volume_button, True, False, 0)
+        hbox.pack_start(self.playlist_button, True, False, 0)
 
         grid.add(hbox)
         grid.add(self.vbox)
+        grid.attach(self.progress, 0, 1, 1,1)
         self.add(grid)
 
     def _create_control_widgets(self):
@@ -68,6 +74,7 @@ class PlayerFrame(Gtk.Window, Observer):
 
     def _add_track(self, widget):
         dialog = Gtk.FileChooserDialog(Gtk.FileChooserAction.OPEN)
+        dialog.set_transient_for(self)
         dialog.set_title("Add tracks to your playlist")
         dialog.add_button("_Open", Gtk.ResponseType.OK)
         dialog.add_button("_Cancel", Gtk.ResponseType.CANCEL)
@@ -78,6 +85,13 @@ class PlayerFrame(Gtk.Window, Observer):
             self.playlist.insert(Gtk.Label(mixer.track_list[-1].metadata.track_name), len(self.playlist.get_children()))
             self.show_all()
         dialog.destroy()
+
+    def _start_skip(self, widget, value):
+        self.skipping = True
+
+    def _end_skip(self, widget, value):
+        mixer.skip(widget.get_value())
+        self.skipping = False
 
     def show(self):
         self.show_all()
@@ -167,9 +181,12 @@ class PlayerFrame(Gtk.Window, Observer):
 
     def update(self, event, event_type):
         if event_type == mixer.PLAY_EVENT or event_type == mixer.NEXT_EVENT:
+            self.progress.set_range(0, mixer.get_song_duration())
             self.play_button.get_children()[0].set_text(u'▌▌')
         elif event_type == mixer.PAUSE_EVENT or event_type == mixer.STOP_EVENT:
             self.play_button.get_children()[0].set_text('▶')
+        elif event_type == mixer.SLIDER_EVENT and not self.skipping:
+            self.progress.set_value(mixer.get_pos()/1000)
 
     def _play_pause(self, widget):
         if mixer.is_playing():
