@@ -1,0 +1,12 @@
+language: python
+python:
+  - "2.7"
+script: python -m unittest discover
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install python-pygame
+  - wget -O audiotools-3.1.1.tar.gz "downloads.sourceforge.net/project/audiotools/audiotools/3.1.1/audiotools-3.1.1.tar.gz?r=&ts=1477435384&use_mirror=freefr"
+  - tar xvf audiotools-3.1.1.tar.gz
+  - cd ./audiotools-3.1.1
+  - python setup.py build
+  - python setup.py install
