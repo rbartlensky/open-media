@@ -15,8 +15,9 @@ class PlayerThread(Thread):
             if mixer.is_playing() and pos == -1:
                 mixer.play_next()
             else:
+                time.sleep(0.1)
                 mixer.notify_observers(mixer.SLIDER_EVENT)
-                
+
     @property
     def keep_running(self):
         return self._keep_running

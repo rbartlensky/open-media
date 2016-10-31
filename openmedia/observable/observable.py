@@ -1,3 +1,7 @@
+import threading
+import gi
+from gi.repository import GLib
+
 class Observable(object):
 
     def __init__(self):
@@ -8,12 +12,13 @@ class Observable(object):
 
     def notify_observers(self, info):
         for obs in self._observers:
-            obs.update(info)
+            event = threading.Event()
+            GLib.idle_add(obs.update, event, info)
 
 class Observer(object):
 
     def __init__(self):
         pass
 
-    def update(self, info):
-        pass
+    def update(self, event, info):
+        return False
