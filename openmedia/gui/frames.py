@@ -4,6 +4,7 @@ import gi
 from gi.repository import Gtk, Gio, GObject
 from openmedia.player import mixer
 from openmedia.observable.observable import Observer
+from openmedia.tools.timeformatter import hms_format
 
 class InvalidWidgetStateException(Exception):
     pass
@@ -24,31 +25,13 @@ class PlayerFrame(Gtk.Window, Observer):
         self.progress.connect("button-release-event", self._end_skip)
         self.progress.set_vexpand(False)
 
-        self.mainHBox = Gtk.VBox()
-        self.mainHBox.set_spacing(5)
-
-        self.buttonsBox = Gtk.HBox(False)
-        self.buttonsBox.set_spacing(5)
-        self.buttonsBox.pack_start(self.play_button, False, False, 0)
-        self.buttonsBox.pack_start(self.stop_button, False, False, 0)
-        self.buttonsBox.pack_start(self.play_next_button, False, False, 0)
-        self.volumeBox = Gtk.HBox()
-        self.volumeBox.pack_end(self.volume_button, False, True, 0)
-        self.buttonsBox.pack_start(self.playlist_button, False, False, 0)
-        self.buttonsBox.pack_end(self.volumeBox, True, True, 0)
-        self.buttonsBox.set_vexpand(False)
-
         self.leftBox = Gtk.VBox()
         self.leftBox.pack_start(self.buttonsBox, True, False, 0)
         self.leftBox.pack_start(self.progress, False, False, 0)
         self.leftBox.set_vexpand(False)
 
-        self.playlistBox = Gtk.VBox()
-        self.playlistBox.set_spacing(5)
-        self.playlistBox.pack_start(self.playlist, False, False, 0)
-        self.playlistBox.pack_start(self.add_track, False, False, 0)
-        self.playlistBox.set_vexpand(False)
-
+        self.mainHBox = Gtk.VBox()
+        self.mainHBox.set_spacing(5)
         self.mainHBox.pack_start(self.playlistBox, False, False, 0)
         self.mainHBox.pack_start(self.leftBox, False, True, 0)
         self.mainHBox.set_vexpand(False)
@@ -80,6 +63,17 @@ class PlayerFrame(Gtk.Window, Observer):
         self.playlist_button.connect("clicked", self._toggle_playlist)
         self.playlist_button.set_vexpand(False)
 
+        self.buttonsBox = Gtk.HBox(False)
+        self.buttonsBox.set_spacing(5)
+        self.buttonsBox.pack_start(self.play_button, False, False, 0)
+        self.buttonsBox.pack_start(self.stop_button, False, False, 0)
+        self.buttonsBox.pack_start(self.play_next_button, False, False, 0)
+        self.volumeBox = Gtk.HBox()
+        self.volumeBox.pack_end(self.volume_button, False, True, 0)
+        self.buttonsBox.pack_start(self.playlist_button, False, False, 0)
+        self.buttonsBox.pack_end(self.volumeBox, True, True, 0)
+        self.buttonsBox.set_vexpand(False)
+
     def _create_playlist(self):
         self.model = Gio.ListStore.new(ModelItem)
         self.playlist = Gtk.ListBox()
@@ -92,10 +86,16 @@ class PlayerFrame(Gtk.Window, Observer):
         self.add_track = Gtk.Button(label="+")
         self.add_track.connect("clicked", self._add_track)
 
+        self.playlistBox = Gtk.VBox()
+        self.playlistBox.set_spacing(5)
+        self.playlistBox.pack_start(self.playlist, False, False, 0)
+        self.playlistBox.pack_start(self.add_track, False, False, 0)
+        self.playlistBox.set_vexpand(False)
+
     def _create_list_item(self, item, data):
         hbox = Gtk.HBox(5)
         title_label = Gtk.Label(item.title)
-        duration_label = Gtk.Label(item.duration)
+        duration_label = Gtk.Label(hms_format(item.duration))
         title_label.show()
         duration_label.show()
         hbox.pack_start(title_label, False, False, 0)
