@@ -84,8 +84,10 @@ class PlayerFrame(Gtk.Window, Observer):
         self.model = Gio.ListStore.new(ModelItem)
         self.playlist = Gtk.ListBox()
         self.playlist.bind_model(self.model, self._create_list_item, None)
+        self.playlist.connect("row_activated", self._play_item)
         for track in mixer.track_list:
-            self.model.append(ModelItem(track.metadata.track_name, track.duration))
+            item = ModelItem(track.metadata.track_name, track.duration)
+            self.model.append(item)
         self.playlist.select_row(self.playlist.get_row_at_index(0))
         self.add_track = Gtk.Button(label="+")
         self.add_track.connect("clicked", self._add_track)
@@ -99,6 +101,9 @@ class PlayerFrame(Gtk.Window, Observer):
         hbox.pack_start(title_label, False, False, 0)
         hbox.pack_start(duration_label, False, False, 0)
         return hbox
+
+    def _play_item(self, list_box, row):
+        mixer.play(mixer.track_list[row.get_index()].file_path)
 
     def _add_track(self, widget):
         dialog = Gtk.FileChooserDialog(Gtk.FileChooserAction.OPEN)

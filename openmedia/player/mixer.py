@@ -60,7 +60,7 @@ def play(path=None):
 
 def get_song_index(path):
     for idx, track in enumerate(track_list):
-        if path == os.path.basename(track.file_path):
+        if path == track.file_path:
             return idx
     return None
 
