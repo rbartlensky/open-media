@@ -14,7 +14,7 @@ def print_playlist(args):
         print 'Type "h" for help.\nYour playlist is:'
         for arg in args:
             filename = os.path.basename(arg)
-            if filename  == os.path.basename(mixer.current_track.get_path()):
+            if filename  == os.path.basename(mixer.current_track.file_path):
                 print '{:<8}{:}'.format('*', filename)
             else:
                 print '{:<8}{:}'.format('', filename)
@@ -66,12 +66,13 @@ def start_player(args):
                 playlist.append(track)
             print_playlist(playlist)
         elif input_char == 'q':
+            mixer.stop()
             break
         else:
             print "Unknown command '%s'" % input_char
 
 def run(args=[]):
-    mixer.init(args)
     mixer.play()
     runner = Thread(target=start_player, args=(args,))
     runner.start()
+    runner.join()

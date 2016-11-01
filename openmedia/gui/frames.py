@@ -1,189 +1,179 @@
 # -*- coding: utf-8 -*-
 
-import Tkinter as Tk
-import os, widgets, tkFileDialog
+import gi
+from gi.repository import Gtk, Gio, GObject
 from openmedia.player import mixer
+from openmedia.observable.observable import Observer
+from openmedia.tools.timeformatter import hms_format
 
 class InvalidWidgetStateException(Exception):
     pass
 
-class PlayerFrame(Tk.Frame):
-    def __init__(self, root):
-        Tk.Frame.__init__(self, root)
-        self.f_control = _ControlFrame(self)
-        self.f_progress = _ProgressFrame(self)
-        self.f_playlist = _PlaylistFrame(self)
-        self.f_control.grid(row=0, column=0)
-        self.f_progress.grid(row=1, column=0)
-        self.f_playlist.grid(row=0, column=1, rowspan=10)
-        for i in xrange(0, 2):
-            self.grid_columnconfigure(i, weight=1)
-            self.grid_rowconfigure(i, weight=1)
-        self._bind_all()
-        if mixer.track_count:
-            mixer.play()
-        else:
-            self._update_play_icon(self.f_control.buttons[_ControlFrame.PLAY])
+class PlayerFrame(Gtk.Window, Observer):
+    def __init__(self):
+        Gtk.Window.__init__(self, title="open-media")
+        Observer.__init__(self)
+        self.skipping = False
+        self.connect("delete-event", self.halt)
+        self.set_border_width(10)
+        mixer.add_observer(self)
+        self._create_control_widgets()
+        self._create_playlist()
+        self.progress = Gtk.Scale()
+        self.progress.set_range(0, mixer.get_song_duration())
+        self.progress.connect("button-press-event", self._start_skip)
+        self.progress.connect("button-release-event", self._end_skip)
+        self.progress.set_vexpand(False)
 
-    def _bind_all(self):
-        for button in self.f_control.buttons:
-            button.bind(button.sequence, getattr(self, '_' + button.name + '_handler'))
-        for button in self.f_playlist.buttons:
-            button.bind(button.sequence, getattr(self, '_' + button.name + '_handler'))
-        self.f_control.s_volume.bind('<B1-Motion>', self._set_volume)
-        self.f_progress.s_progress.bind('<ButtonRelease-1>', self._skip)
-        self.f_playlist.l_playlist.bind('<Double-Button-1>', self._play)
-        self.f_progress.set_alarm(self._progress)
+        self.leftBox = Gtk.VBox()
+        self.leftBox.pack_start(self.buttonsBox, True, False, 0)
+        self.leftBox.pack_start(self.progress, False, False, 0)
+        self.leftBox.set_vexpand(False)
 
-    def _update_play_icon(self, button):
-        if mixer.is_playing():
-            button.config(text=u'▶')
-        else:
-            button.config(text=u'▌▌')
+        self.mainHBox = Gtk.VBox()
+        self.mainHBox.set_spacing(5)
+        self.mainHBox.pack_start(self.playlistBox, False, False, 0)
+        self.mainHBox.pack_start(self.leftBox, False, True, 0)
+        self.mainHBox.set_vexpand(False)
 
-    def _play_pause(self, button):
-        self._update_play_icon(button)
+        self.add(self.mainHBox)
+        self.set_vexpand(False)
+        self.set_default_size(-1, 120)
+
+    def _create_control_widgets(self):
+        self.play_button = Gtk.Button(label=u'▶')
+        self.play_button.connect("clicked", self._play_pause)
+        self.play_button.set_vexpand(False)
+
+        self.stop_button = Gtk.Button(label=u'■')
+        self.stop_button.connect("clicked", self._stop)
+        self.stop_button.set_vexpand(False)
+
+        self.play_next_button = Gtk.Button(label=">>")
+        self.play_next_button.connect("clicked", self._play_next)
+        self.play_next_button.set_vexpand(False)
+
+        self.volume_button = Gtk.VolumeButton()
+        self.volume_button.set_value(0.5)
+        self.volume_button.connect("value-changed", self._volume)
+        self.volume_button.x_align = 1.0
+        self.volume_button.set_vexpand(False)
+
+        self.playlist_button = Gtk.ToggleButton(label="=")
+        self.playlist_button.connect("clicked", self._toggle_playlist)
+        self.playlist_button.set_vexpand(False)
+
+        self.buttonsBox = Gtk.HBox(False)
+        self.buttonsBox.set_spacing(5)
+        self.buttonsBox.pack_start(self.play_button, False, False, 0)
+        self.buttonsBox.pack_start(self.stop_button, False, False, 0)
+        self.buttonsBox.pack_start(self.play_next_button, False, False, 0)
+        self.volumeBox = Gtk.HBox()
+        self.volumeBox.pack_end(self.volume_button, False, True, 0)
+        self.buttonsBox.pack_start(self.playlist_button, False, False, 0)
+        self.buttonsBox.pack_end(self.volumeBox, True, True, 0)
+        self.buttonsBox.set_vexpand(False)
+
+    def _create_playlist(self):
+        self.model = Gio.ListStore.new(ModelItem)
+        self.playlist = Gtk.ListBox()
+        self.playlist.bind_model(self.model, self._create_list_item, None)
+        self.playlist.connect("row_activated", self._play_item)
+        for track in mixer.track_list:
+            item = ModelItem(track.metadata.track_name, track.duration)
+            self.model.append(item)
+        self.playlist.select_row(self.playlist.get_row_at_index(0))
+        self.add_track = Gtk.Button(label="+")
+        self.add_track.connect("clicked", self._add_track)
+
+        self.playlistBox = Gtk.VBox()
+        self.playlistBox.set_spacing(5)
+        self.playlistBox.pack_start(self.playlist, False, False, 0)
+        self.playlistBox.pack_start(self.add_track, False, False, 0)
+        self.playlistBox.set_vexpand(False)
+
+    def _create_list_item(self, item, data):
+        hbox = Gtk.HBox(5)
+        title_label = Gtk.Label(item.title)
+        duration_label = Gtk.Label(hms_format(item.duration))
+        title_label.show()
+        duration_label.show()
+        hbox.pack_start(title_label, False, False, 0)
+        hbox.pack_start(duration_label, False, False, 0)
+        return hbox
+
+    def _play_item(self, list_box, row):
+        mixer.play(mixer.track_list[row.get_index()].file_path)
+
+    def _add_track(self, widget):
+        dialog = Gtk.FileChooserDialog(Gtk.FileChooserAction.OPEN)
+        dialog.set_transient_for(self)
+        dialog.set_title("Add tracks to your playlist")
+        dialog.add_button("_Open", Gtk.ResponseType.OK)
+        dialog.add_button("_Cancel", Gtk.ResponseType.CANCEL)
+        dialog.set_default_response(Gtk.ResponseType.OK)
+        response = dialog.run()
+        if response == Gtk.ResponseType.OK:
+            mixer.add(dialog.get_filename())
+            self.model.append(ModelItem(mixer.track_list[-1].metadata.track_name,\
+                              mixer.track_list[-1].duration))
+            self.show_all()
+        dialog.destroy()
+
+    def _start_skip(self, widget, value):
+        self.skipping = True
+
+    def _end_skip(self, widget, value):
+        mixer.skip(widget.get_value())
+        self.skipping = False
+
+    def show(self):
+        self.show_all()
+        self.playlistBox.hide()
+
+    def update(self, event, event_type):
+        if event_type == mixer.PLAY_EVENT or event_type == mixer.NEXT_EVENT:
+            self.progress.set_range(0, mixer.get_song_duration())
+            self.play_button.get_children()[0].set_text(u'▌▌')
+        elif event_type == mixer.PAUSE_EVENT or event_type == mixer.STOP_EVENT:
+            self.play_button.get_children()[0].set_text('▶')
+        elif event_type == mixer.SLIDER_EVENT and not self.skipping:
+            self.progress.set_value(mixer.get_pos()/1000)
+        return False
+
+    def _play_pause(self, widget):
         if mixer.is_playing():
             mixer.pause()
         else:
             mixer.play()
 
-    def _play_pause_handler(self, event):
-        self._play_pause(event.widget)
-
-    def _stop_handler(self, event):
-        if not mixer.is_stopped:
-            self._play_pause(self.f_control.buttons[_ControlFrame.PLAY])
-            mixer.stop()
-            self.f_progress.set_progress(0)
-
-    def _play_next(self, button):
-        self.f_control.buttons[_ControlFrame.PLAY].config(text=u'▌▌')
-        list_box = self.f_playlist.l_playlist
-        list_box.highlight_next(mixer.curr_track_index)
-        self.f_progress.set_progress(0)
+    def _play_next(self, widget):
         mixer.play_next()
-        self.f_progress.set_max_progress(mixer.get_song_duration())
+        row = self.playlist.get_row_at_index(mixer.curr_track_index)
+        self.playlist.select_row(row)
+        if self.playlistBox.is_visible():
+            self.playlistBox.show_all()
 
-    def _play_next_handler(self, event):
-        self._play_next(event.widget)
+    def _stop(self, widget):
+        mixer.stop()
 
-    def _show_hide_handler(self, event):
-        if event.widget.checked is None:
-            raise InvalidWidgetStateException('Expected boolean value for ' +
-                                              str(event.widget))
-        if event.widget.checked:
-            self.f_playlist.l_playlist.grid_remove()
-            self.f_playlist.yscroll.grid_remove()
-            self.f_playlist.buttons[_PlaylistFrame.ADD].grid_remove()
-            event.widget.checked = False
+    def _volume(self, widget, value):
+        mixer.set_volume(value)
+
+    def _toggle_playlist(self, widget):
+        if self.playlistBox.is_visible():
+            self.playlistBox.set_visible(False)
         else:
-            self.f_playlist.l_playlist.grid(row=0, column=0, columnspan=2)
-            self.f_playlist.yscroll.grid(row=0, column=2, sticky=Tk.N+Tk.S)
-            self.f_playlist.buttons[_PlaylistFrame.ADD].grid(row=1, column=1)
-            event.widget.checked = True
+            self.playlistBox.set_visible(True)
 
-    def _play(self, event):
+    def halt(self, window, event):
         mixer.stop()
-        mixer.play(self.f_playlist.l_playlist.get(Tk.ACTIVE))
-        self.f_control.buttons[_ControlFrame.PLAY].config(text=u'▌▌')
-        f_progress = self.f_progress
-        f_progress.set_progress(0)
-        f_progress.set_max_progress(mixer.get_song_duration())
+        Gtk.main_quit()
 
-    def _add_handler(self, event):
-        self.filename = os.path.basename(tkFileDialog.askopenfilename())
-        self.f_playlist.l_playlist.add_track(self.filename)
-        mixer.add(self.filename)
+class ModelItem(GObject.Object):
 
-    def _set_volume(self, event):
-        mixer.set_volume(float(event.widget.get()) / 100)
+    def __init__(self, title, duration):
+        GObject.Object.__init__(self)
+        self.title = title
+        self.duration = duration
 
-    def _progress(self):
-        new_value = mixer.get_pos() / 1000
-        if new_value != -1:
-            self.f_progress.set_progress(new_value)
-        elif mixer.track_count:
-            self._play_next([_ControlFrame.NEXT])
-        self.f_progress.set_alarm(self._progress)
-
-    def _skip(self, event):
-        value = self.f_progress.get_progress()
-        mixer.skip(value)
-
-    def open_file(self):
-        self.filename = tkFileDialog.askopenfilename()
-        mixer.stop()
-        mixer.init([self.filename])
-        self.f_playlist.l_playlist.clear()
-        self.f_playlist.l_playlist.add_track(os.path.basename(self.filename))
-        self.f_playlist.l_playlist.highlight_next(mixer.curr_track_index)
-        mixer.set_volume(float(self.f_control.s_volume.get()) / 100)
-        self._update_play_icon(self.f_control.buttons[_ControlFrame.PLAY])
-        mixer.play()
-
-class _PlaylistFrame(Tk.Frame):
-    _button_data = [('show_hide', u'≡', False, True),
-                   ('add', u'+', None, False)]
-    _button_names = 'SHOW_HIDE ADD'
-
-    def __init__(self, root):
-        Tk.Frame.__init__(self, root)
-        self.yscroll = Tk.Scrollbar(root)
-        self.buttons = [widgets.PlayerButton(self, text=text,\
-                        name=name, checked=checked, visible=visible) \
-                        for name, text, checked, visible in self._button_data]
-        for index, button in enumerate(self.buttons):
-            if button.visible:
-                button.grid(row=1, column=index)
-        self._create_playlist()
-        self.yscroll.config(command=self.l_playlist.yview)
-
-    def _create_playlist(self):
-        self.l_playlist = widgets.PlayList(self, yscrollcommand=self.yscroll.set)
-        for track in mixer.track_list:
-            self.l_playlist.add_track(os.path.basename(track.get_path()))
-        self.l_playlist.highlight_index(0)
-
-for index, field in enumerate(_PlaylistFrame._button_names.split(' ')):
-    setattr(_PlaylistFrame, field, index)
-
-class _ControlFrame(Tk.Frame):
-    _button_data = [('play_pause', u'▌▌', True),
-                   ('stop', u'■', True),
-                   ('play_next', u'↦', True)]
-    _button_names = 'PLAY STOP NEXT'
-
-    def __init__(self, root):
-        Tk.Frame.__init__(self, root)
-        self.buttons = [widgets.PlayerButton(self, text=text,\
-                        name=name, visible=visible) \
-                        for name, text, visible in self._button_data]
-        self.s_volume = widgets.VolumeSlider(self)
-        for index, button in enumerate(self.buttons):
-            if button.visible:
-                button.grid(row=0, column=index, padx=2)
-        self.s_volume = widgets.VolumeSlider(self)
-        self.s_volume.grid(row=0, column=4, ipady=8)
-        self.s_volume.set(50)
-
-for index, field in enumerate(_ControlFrame._button_names.split(' ')):
-    setattr(_ControlFrame, field, index)
-
-class _ProgressFrame(Tk.Frame):
-    def __init__(self, root):
-        Tk.Frame.__init__(self, root)
-        self.s_progress = widgets.PlayerSlider(self, to=mixer.get_song_duration())
-        self.s_progress.grid(row=0, column=0, ipady=10)
-
-    def set_alarm(self, callback):
-        self.s_progress.after(1000, callback)
-
-    def get_progress(self):
-        return self.s_progress.get()
-
-    def set_progress(self, value):
-        self.s_progress.set(value)
-
-    def set_max_progress(self, value):
-        self.s_progress.config(to=mixer.get_song_duration())
