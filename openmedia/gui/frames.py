@@ -15,7 +15,6 @@ class PlayerFrame(Gtk.Window, Observer):
         Observer.__init__(self)
         self.skipping = False
         self.connect("delete-event", self.halt)
-        self.set_border_width(10)
         mixer.add_observer(self)
         self._create_control_widgets()
         self._create_playlist()
@@ -30,15 +29,27 @@ class PlayerFrame(Gtk.Window, Observer):
         self.leftBox.pack_start(self.progress, False, False, 0)
         self.leftBox.set_vexpand(False)
 
-        self.mainHBox = Gtk.VBox()
-        self.mainHBox.set_spacing(5)
-        self.mainHBox.pack_start(self.playlistBox, False, False, 0)
-        self.mainHBox.pack_start(self.leftBox, False, True, 0)
-        self.mainHBox.set_vexpand(False)
+        self.controlBox = Gtk.VBox()
+        self.controlBox.set_border_width(10)
+        self.controlBox.set_spacing(5)
+        self.controlBox.pack_start(self.playlistBox, False, False, 0)
+        self.controlBox.pack_start(self.leftBox, False, True, 0)
+        self.controlBox.set_vexpand(False)
 
-        self.add(self.mainHBox)
-        self.set_vexpand(False)
+        self.mainVBox = Gtk.VBox();
+
+        self.mainVBox.pack_start(self.controlBox, False, False, 0)
+        self.mainVBox.set_vexpand(False)
         self.set_default_size(-1, 120)
+        self._create_status_bar()
+        self.mainVBox.pack_end(self.statusBar, False, False, 0)
+        self.mainVBox.pack_end(Gtk.HSeparator(), False, False, 0)
+        self.add(self.mainVBox)
+
+    def _create_status_bar(self):
+        self.statusBar = Gtk.Statusbar()
+        self.lastContextId = None
+        self._update_status("Stopped.")
 
     def _create_control_widgets(self):
         self.play_button = Gtk.Button(label=u'▶')
@@ -135,10 +146,17 @@ class PlayerFrame(Gtk.Window, Observer):
         if event_type == mixer.PLAY_EVENT or event_type == mixer.NEXT_EVENT:
             self.progress.set_range(0, mixer.get_song_duration())
             self.play_button.get_children()[0].set_text(u'▌▌')
+            self._update_status("Playing '" + str(mixer.current_track.name) + "'.")
         elif event_type == mixer.PAUSE_EVENT or event_type == mixer.STOP_EVENT:
             self.play_button.get_children()[0].set_text('▶')
+            if event_type == mixer.PAUSE_EVENT:
+                self._update_status("Paused.")
+            else:
+                self._update_status("Stopped.")
         elif event_type == mixer.SLIDER_EVENT and not self.skipping:
             self.progress.set_value(mixer.get_pos()/1000)
+            if mixer.is_playing():
+                self._update_status("Playing '" + str(mixer.current_track.name) + "'.")
         return False
 
     def _play_pause(self, widget):
@@ -166,6 +184,12 @@ class PlayerFrame(Gtk.Window, Observer):
         else:
             self.playlistBox.set_visible(True)
 
+    def _update_status(self, text="Nothing to show."):
+        if self.lastContextId:
+            self.statusBar.pop(self.lastContextId)
+        self.lastContextId = self.statusBar.push(self.statusBar.get_context_id(text), text)
+
+
     def halt(self, window, event):
         mixer.stop()
         Gtk.main_quit()
@@ -176,4 +200,3 @@ class ModelItem(GObject.Object):
         GObject.Object.__init__(self)
         self.title = title
         self.duration = duration
-
