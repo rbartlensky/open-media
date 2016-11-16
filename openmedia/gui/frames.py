@@ -146,6 +146,8 @@ class PlayerFrame(Gtk.Window, Observer):
         if event_type == mixer.PLAY_EVENT or event_type == mixer.NEXT_EVENT:
             self.progress.set_range(0, mixer.get_song_duration())
             self.play_button.get_children()[0].set_text(u'▌▌')
+            row = self.playlist.get_row_at_index(mixer.curr_track_index)
+            self.playlist.select_row(row)
             self._update_status("Playing '" + str(mixer.current_track.name) + "'.")
         elif event_type == mixer.PAUSE_EVENT or event_type == mixer.STOP_EVENT:
             self.play_button.get_children()[0].set_text('▶')
@@ -167,8 +169,6 @@ class PlayerFrame(Gtk.Window, Observer):
 
     def _play_next(self, widget):
         mixer.play_next()
-        row = self.playlist.get_row_at_index(mixer.curr_track_index)
-        self.playlist.select_row(row)
         if self.playlistBox.is_visible():
             self.playlistBox.show_all()
 
