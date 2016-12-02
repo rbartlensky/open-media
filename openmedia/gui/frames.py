@@ -22,6 +22,8 @@ class PlayerFrame(Gtk.Window, Observer):
         self.progress.set_range(0, mixer.get_song_duration())
         self.progress.connect("button-press-event", self._start_skip)
         self.progress.connect("button-release-event", self._end_skip)
+        self.progress.connect("format-value", _hms_format)
+        self.progress.set_value(0)
         self.progress.set_vexpand(False)
 
         self.leftBox = Gtk.VBox()
@@ -194,9 +196,13 @@ class PlayerFrame(Gtk.Window, Observer):
         mixer.stop()
         Gtk.main_quit()
 
+def _hms_format(scale, value):
+    return hms_format(value)
+
 class ModelItem(GObject.Object):
 
     def __init__(self, title, duration):
         GObject.Object.__init__(self)
         self.title = title
         self.duration = duration
+
