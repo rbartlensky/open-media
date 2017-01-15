@@ -9,7 +9,7 @@ from openmedia.tools.timeformatter import hms_format
 class InvalidWidgetStateException(Exception):
     pass
 
-class PlayerFrame(Gtk.Window, Observer):
+class PlayerWindow(Gtk.Window, Observer):
     def __init__(self):
         Gtk.Window.__init__(self, title="open-media")
         Observer.__init__(self)
@@ -24,25 +24,19 @@ class PlayerFrame(Gtk.Window, Observer):
         self.progress.connect("button-release-event", self._end_skip)
         self.progress.connect("format-value", _hms_format)
         self.progress.set_value(0)
-        self.progress.set_vexpand(False)
 
         self.leftBox = Gtk.VBox()
         self.leftBox.pack_start(self.buttonsBox, True, False, 0)
         self.leftBox.pack_start(self.progress, False, False, 0)
-        self.leftBox.set_vexpand(False)
 
         self.controlBox = Gtk.VBox()
         self.controlBox.set_border_width(10)
         self.controlBox.set_spacing(5)
         self.controlBox.pack_start(self.playlistBox, False, False, 0)
         self.controlBox.pack_start(self.leftBox, False, True, 0)
-        self.controlBox.set_vexpand(False)
 
-        self.mainVBox = Gtk.VBox();
-
+        self.mainVBox = Gtk.VBox()
         self.mainVBox.pack_start(self.controlBox, False, False, 0)
-        self.mainVBox.set_vexpand(False)
-        self.set_default_size(-1, 120)
         self._create_status_bar()
         self.mainVBox.pack_end(self.statusBar, False, False, 0)
         self.mainVBox.pack_end(Gtk.HSeparator(), False, False, 0)
@@ -56,25 +50,20 @@ class PlayerFrame(Gtk.Window, Observer):
     def _create_control_widgets(self):
         self.play_button = Gtk.Button(label=u'▶')
         self.play_button.connect("clicked", self._play_pause)
-        self.play_button.set_vexpand(False)
 
         self.stop_button = Gtk.Button(label=u'■')
         self.stop_button.connect("clicked", self._stop)
-        self.stop_button.set_vexpand(False)
 
         self.play_next_button = Gtk.Button(label=">>")
         self.play_next_button.connect("clicked", self._play_next)
-        self.play_next_button.set_vexpand(False)
 
         self.volume_button = Gtk.VolumeButton()
         self.volume_button.set_value(0.5)
         self.volume_button.connect("value-changed", self._volume)
         self.volume_button.x_align = 1.0
-        self.volume_button.set_vexpand(False)
 
         self.playlist_button = Gtk.ToggleButton(label="=")
         self.playlist_button.connect("clicked", self._toggle_playlist)
-        self.playlist_button.set_vexpand(False)
 
         self.buttonsBox = Gtk.HBox(False)
         self.buttonsBox.set_spacing(5)
@@ -85,7 +74,6 @@ class PlayerFrame(Gtk.Window, Observer):
         self.volumeBox.pack_end(self.volume_button, False, True, 0)
         self.buttonsBox.pack_start(self.playlist_button, False, False, 0)
         self.buttonsBox.pack_end(self.volumeBox, True, True, 0)
-        self.buttonsBox.set_vexpand(False)
 
     def _create_playlist(self):
         self.model = Gio.ListStore.new(ModelItem)
@@ -103,7 +91,6 @@ class PlayerFrame(Gtk.Window, Observer):
         self.playlistBox.set_spacing(5)
         self.playlistBox.pack_start(self.playlist, False, False, 0)
         self.playlistBox.pack_start(self.add_track, False, False, 0)
-        self.playlistBox.set_vexpand(False)
 
     def _create_list_item(self, item, data):
         hbox = Gtk.HBox(5)
@@ -190,7 +177,6 @@ class PlayerFrame(Gtk.Window, Observer):
         if self.lastContextId:
             self.statusBar.pop(self.lastContextId)
         self.lastContextId = self.statusBar.push(self.statusBar.get_context_id(text), text)
-
 
     def halt(self, window, event):
         mixer.stop()
