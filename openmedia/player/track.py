@@ -1,6 +1,6 @@
 from audiotools import open, UnsupportedFile
-import mutagen
 import os
+
 
 class Track(object):
 
@@ -12,7 +12,6 @@ class Track(object):
             self._metadata = track_file.get_metadata()
         except UnsupportedFile:
             if file_path.endswith(".mp3"):
-                from mutagen.mp3 import MP3, MPEGInfo
                 from mutagen import File
                 track_file = File(self.file_path)
                 self._metadata = Metadata(track_file)
@@ -36,6 +35,7 @@ class Track(object):
     @property
     def duration(self):
         return self._duration
+
 
 class Metadata(object):
 
