@@ -3,10 +3,10 @@ from track import Track
 from playerthread import PlayerThread
 from openmedia.observable.observable import Observable
 
-import os
 
 class InvalidVolumeError(Exception):
     pass
+
 
 PLAY_EVENT, PAUSE_EVENT, STOP_EVENT,\
             NEXT_EVENT, SLIDER_EVENT = [index for index in xrange(5)]
@@ -16,6 +16,7 @@ current_track = None
 is_paused, is_stopped = False, True
 player_thread = PlayerThread()
 _observable = Observable()
+
 
 def reset_values():
     global track_list, curr_track_index, track_count,\
@@ -28,6 +29,7 @@ def reset_values():
     _observable = Observable()
     player_thread = PlayerThread()
 
+
 def init(song_list):
     global track_list, track_count, current_track
     reset_values()
@@ -37,6 +39,7 @@ def init(song_list):
     track_count = len(track_list)
     if track_count:
         current_track = _get_next_song()
+
 
 def play(path=None):
     global track_count, is_paused, is_stopped, curr_track_index,\
@@ -58,11 +61,13 @@ def play(path=None):
             is_stopped = False
             mixer.music.unpause()
 
+
 def get_song_index(path):
     for idx, track in enumerate(track_list):
         if path == track.file_path:
             return idx
     return None
+
 
 def pause():
     global is_paused, _observable
@@ -71,6 +76,7 @@ def pause():
         is_paused = True
         mixer.music.pause()
 
+
 def stop():
     global is_paused, is_stopped, _observable
     _observable.notify_observers(STOP_EVENT)
@@ -78,11 +84,13 @@ def stop():
     is_paused = False
     is_stopped = True
 
+
 def set_volume(volume):
     if volume >= 0.0 and volume <= 1.0:
         mixer.music.set_volume(volume)
     else:
         raise InvalidVolumeError(volume)
+
 
 def play_next():
     global current_track, offset, _observable
@@ -91,6 +99,7 @@ def play_next():
     offset = 0
     current_track = _get_next_song()
     play()
+
 
 def _get_next_song():
     global track_list, curr_track_index, track_count
@@ -101,6 +110,7 @@ def _get_next_song():
     else:
         return None
 
+
 def get_song_duration():
     global current_track
     if current_track:
@@ -108,10 +118,12 @@ def get_song_duration():
     else:
         return 0
 
+
 def add(track_path):
     global track_list, track_count
     track_count += 1
     track_list.append(Track(track_path))
+
 
 def skip(amount):
     global offset
@@ -121,6 +133,7 @@ def skip(amount):
     else:
         offset = amount * 1000
         mixer.music.play(0, amount)
+
 
 def get_pos():
     global offset, is_stopped
@@ -132,13 +145,16 @@ def get_pos():
     else:
         return float(pos + offset)
 
+
 def is_playing():
     global is_paused, is_stopped
     return not is_paused and not is_stopped
 
+
 def add_observer(widget):
     global _observable
     _observable.add_observer(widget)
+
 
 def notify_observers(event_type):
     global _observable

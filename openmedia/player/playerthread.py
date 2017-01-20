@@ -3,6 +3,7 @@ from threading import Thread
 import mixer
 import time
 
+
 class PlayerThread(Thread):
 
     def __init__(self):
@@ -25,4 +26,3 @@ class PlayerThread(Thread):
     @keep_running.setter
     def keep_running(self, value):
         self._keep_running = value
-
