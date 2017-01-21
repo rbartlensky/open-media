@@ -60,7 +60,7 @@ class TestPlayerFunctionality(unittest.TestCase):
     def test_get_song_index(self):
         for index, path in enumerate(self.track_paths):
             self.assertEqual(index,
-                             mixer.get_song_index(os.path.basename(path)))
+                             mixer.get_song_index(path))
 
     def test_set_volume(self):
         self.assertRaises(mixer.InvalidVolumeError,

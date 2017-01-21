@@ -49,17 +49,16 @@ def play(path=None):
         if path:
             curr_track_index = get_song_index(path)
             current_track = track_list[curr_track_index]
-        if not is_paused or is_stopped:
-            is_stopped = False
+        if is_paused and path is None:
+            mixer.music.unpause()
+        else:
             offset = 0
             mixer.music.load(current_track.file_path)
             mixer.music.play()
             if not player_thread.isAlive():
                 player_thread.start()
-        else:
-            is_paused = False
-            is_stopped = False
-            mixer.music.unpause()
+        is_paused = False
+        is_stopped = False
 
 
 def get_song_index(path):
@@ -70,19 +69,19 @@ def get_song_index(path):
 
 
 def pause():
-    global is_paused, _observable
-    _observable.notify_observers(PAUSE_EVENT)
+    global is_paused
     if not is_paused:
         is_paused = True
         mixer.music.pause()
+        notify_observers(PAUSE_EVENT)
 
 
 def stop():
-    global is_paused, is_stopped, _observable
-    _observable.notify_observers(STOP_EVENT)
-    mixer.music.stop()
+    global is_paused, is_stopped
     is_paused = False
     is_stopped = True
+    notify_observers(STOP_EVENT)
+    mixer.music.stop()
 
 
 def set_volume(volume):
@@ -93,8 +92,8 @@ def set_volume(volume):
 
 
 def play_next():
-    global current_track, offset, _observable
-    _observable.notify_observers(NEXT_EVENT)
+    global current_track, offset
+    notify_observers(NEXT_EVENT)
     stop()
     offset = 0
     current_track = _get_next_song()
@@ -126,13 +125,21 @@ def add(track_path):
 
 
 def skip(amount):
-    global offset
+    global offset, is_paused, is_stopped
     duration = get_song_duration()
     if amount >= duration:
         play_next()
     else:
         offset = amount * 1000
+        if is_paused or is_stopped:
+            is_paused = False
+            if is_stopped:
+                mixer.music.load(current_track.file_path)
+                if not player_thread.isAlive():
+                    player_thread.start()
+                is_stopped = False
         mixer.music.play(0, amount)
+        notify_observers(PLAY_EVENT)
 
 
 def get_pos():

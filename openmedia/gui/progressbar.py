@@ -24,8 +24,8 @@ class ProgressBar(Gtk.Scale):
         self._skipping = True
 
     def _end_skip(self, widget, value):
-        mixer.skip(widget.get_value())
         self._skipping = False
+        mixer.skip(widget.get_value())
 
 
 def _hms_format(scale, value):
