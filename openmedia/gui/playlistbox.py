@@ -4,6 +4,7 @@ from gi.repository import Gtk, Gio, GObject
 from openmedia.player import mixer
 from openmedia.observable.observable import Observer
 from openmedia.tools.timeformatter import hms_format
+from tools.iconhelp import get_name
 
 
 class PlaylistBox(Gtk.VBox, Observer):
@@ -26,7 +27,8 @@ class PlaylistBox(Gtk.VBox, Observer):
             item = ModelItem(track.metadata.track_name, track.duration)
             self.model.append(item)
         self.playlist.select_row(self.playlist.get_row_at_index(0))
-        self.add_track = Gtk.Button(label="+")
+        self.add_track = Gtk.Button.new_from_icon_name(get_name("add"),
+                                                       Gtk.IconSize.BUTTON)
         self.add_track.connect("clicked", self._add_track)
 
     def _add_track(self, widget):
