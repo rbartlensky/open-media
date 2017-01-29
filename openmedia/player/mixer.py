@@ -93,11 +93,12 @@ def set_volume(volume):
 
 def play_next():
     global current_track, offset
-    notify_observers(NEXT_EVENT)
-    stop()
-    offset = 0
-    current_track = _get_next_song()
-    play()
+    if track_count:
+        notify_observers(NEXT_EVENT)
+        stop()
+        offset = 0
+        current_track = _get_next_song()
+        play()
 
 
 def _get_next_song():
