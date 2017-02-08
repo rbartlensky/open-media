@@ -1,5 +1,5 @@
 from gi.repository import Gtk
-from mainwindow import MainWindow
+from .mainwindow import MainWindow
 
 
 class PlayerApp(object):

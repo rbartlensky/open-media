@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
 from gi.repository import Gtk
-from playlistbox import PlaylistBox
+from .playlistbox import PlaylistBox
 from openmedia.observable.observable import Observer
 from openmedia.player import mixer
-from tools.iconhelp import get_button_image
-from tools.iconhelp import get_name
+from .tools.iconhelp import get_button_image
+from .tools.iconhelp import get_name
 
 
 class ControlBox(Gtk.VBox, Observer):

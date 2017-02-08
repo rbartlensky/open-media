@@ -12,19 +12,19 @@ def print_playlist(args):
             mixer.init(args)
             mixer.play()
         call(['clear'])
-        print 'Type "h" for help.\nYour playlist is:'
+        print('Type "h" for help.\nYour playlist is:')
         for arg in args:
             filename = os.path.basename(arg)
             if filename == os.path.basename(mixer.current_track.file_path):
-                print '{:<8}{:}'.format('*', filename)
+                print(('{:<8}{:}'.format('*', filename)))
             else:
-                print '{:<8}{:}'.format('', filename)
+                print(('{:<8}{:}'.format('', filename)))
         if mixer.is_playing():
-            print 'Playing'
+            print('Playing')
         elif mixer.is_paused:
-            print 'Paused'
+            print('Paused')
         else:
-            print 'Stopped'
+            print('Stopped')
     else:
         print_help()
 
@@ -34,11 +34,11 @@ def print_help():
 
     help_open = True
     call(['clear'])
-    print "Type 'a' followed by a list of tracks to add them to the playlist"
-    print "Type 'n' to play the next track"
-    print "Type 'p' to play and 'P' to pause"
-    print "Type 'q' to quit"
-    print "Type 'r' to return to the main menu"
+    print("Type 'a' followed by a list of tracks to add them to the playlist")
+    print("Type 'n' to play the next track")
+    print("Type 'p' to play and 'P' to pause")
+    print("Type 'q' to quit")
+    print("Type 'r' to return to the main menu")
 
 
 def start_player(args):
@@ -50,10 +50,10 @@ def start_player(args):
         if not help_open:
             print_playlist(playlist)
         else:
-            print_help()
-        input_char = raw_input().strip()
+            print((_help()))
+        input_char = input().strip()
         if input_char == 'h':
-            print_help()
+            print((_help()))
         elif input_char == 'n':
             mixer.play_next()
         elif input_char == 'p':
@@ -72,7 +72,7 @@ def start_player(args):
             mixer.stop()
             break
         else:
-            print "Unknown command '%s'" % input_char
+            print(("Unknown command '%s'" % input_char))
 
 
 def run(args=[]):

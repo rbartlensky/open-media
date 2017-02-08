@@ -4,7 +4,7 @@ from gi.repository import Gtk, Gio, GObject
 from openmedia.player import mixer
 from openmedia.observable.observable import Observer
 from openmedia.tools.timeformatter import hms_format
-from tools.iconhelp import get_name
+from .tools.iconhelp import get_name
 
 
 class PlaylistBox(Gtk.VBox, Observer):

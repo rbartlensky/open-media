@@ -1,6 +1,4 @@
 from threading import Thread
-
-import mixer
 import time
 
 
@@ -11,6 +9,7 @@ class PlayerThread(Thread):
         self._keep_running = True
 
     def run(self):
+        from . import mixer
         while self.keep_running:
             pos = mixer.get_pos()
             if mixer.is_playing() and pos == -1:

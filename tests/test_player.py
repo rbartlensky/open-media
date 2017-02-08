@@ -71,7 +71,7 @@ class TestPlayerFunctionality(unittest.TestCase):
         self.assertEqual(mixer.curr_track_index, 0)
         self.assertEqual(mixer.current_track.file_path,
                          self.track_paths[0])
-        for i in xrange(1, 4):
+        for i in range(1, 4):
             mixer.play_next()
             self.assertEqual(mixer.curr_track_index, i % 3)
             self.assertEqual(mixer.current_track.file_path,

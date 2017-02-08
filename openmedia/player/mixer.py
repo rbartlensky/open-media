@@ -1,15 +1,20 @@
-from pygame import mixer
-from track import Track
-from playerthread import PlayerThread
+from gi.repository import Gst
+from .track import Track
+from .playerthread import PlayerThread
 from openmedia.observable.observable import Observable
 
 
 class InvalidVolumeError(Exception):
     pass
 
-
 PLAY_EVENT, PAUSE_EVENT, STOP_EVENT,\
-            NEXT_EVENT, SLIDER_EVENT = [index for index in xrange(5)]
+            NEXT_EVENT, SLIDER_EVENT = [index for index in range(5)]
+
+pipeline = Gst.Pipeline.new('main-pipeline')
+filesrc = Gst.ElementFactory.make("filesrc", "filesrc")
+decoder = Gst.ElementFactory.make("decodebin", "mp3decoder")
+
+
 track_list = []
 curr_track_index, track_count, offset = -1, 0, 0
 current_track = None
@@ -31,35 +36,28 @@ def reset_values():
 
 
 def init(song_list):
-    global track_list, track_count, current_track
-    reset_values()
+    global track_list, track_count, current_track, pipeline, filesrc,\
+            decoder
+    pipeline.add(filesrc)
+    pipeline.add(decoder)
+    filesrc.link(decoder)
+    convert = Gst.ElementFactory.make("audioconvert", "convert")
+    pipeline.add(convert)
+    sink = Gst.ElementFactory.make("alsasink", "sink")
+    pipeline.add(sink)
+    convert.link(sink)
+    decoder.link(convert)
     track_list = [Track(song) for song in song_list]
-    mixer.init()
-    set_volume(0.5)
-    track_count = len(track_list)
-    if track_count:
-        current_track = _get_next_song()
-
+    #if len(track_list) > 0:
+    #    filesrc.set_property("location", track_list[0].file_path)
 
 def play(path=None):
     global track_count, is_paused, is_stopped, curr_track_index,\
-           current_track, offset, player_thread, _observable
-    if track_count:
-        _observable.notify_observers(PLAY_EVENT)
-        if path:
-            curr_track_index = get_song_index(path)
-            current_track = track_list[curr_track_index]
-        if is_paused and path is None:
-            mixer.music.unpause()
-        else:
-            offset = 0
-            mixer.music.load(current_track.file_path)
-            mixer.music.play()
-            if not player_thread.isAlive():
-                player_thread.start()
-        is_paused = False
-        is_stopped = False
-
+           current_track, offset, player_thread, _observable, pipeline, filesrc
+    if len(track_list) > 0:
+        print("playing?")
+        filesrc.set_property("location", track_list[0].file_path)
+        pipeline.set_state(Gst.State.PLAYING)
 
 def get_song_index(path):
     for idx, track in enumerate(track_list):
@@ -72,7 +70,6 @@ def pause():
     global is_paused
     if not is_paused:
         is_paused = True
-        mixer.music.pause()
         notify_observers(PAUSE_EVENT)
 
 
@@ -81,12 +78,12 @@ def stop():
     is_paused = False
     is_stopped = True
     notify_observers(STOP_EVENT)
-    mixer.music.stop()
+    #mixer.music.stop()
 
 
 def set_volume(volume):
     if volume >= 0.0 and volume <= 1.0:
-        mixer.music.set_volume(volume)
+        pass
     else:
         raise InvalidVolumeError(volume)
 
@@ -135,17 +132,15 @@ def skip(amount):
         if is_paused or is_stopped:
             is_paused = False
             if is_stopped:
-                mixer.music.load(current_track.file_path)
                 if not player_thread.isAlive():
                     player_thread.start()
                 is_stopped = False
-        mixer.music.play(0, amount)
         notify_observers(PLAY_EVENT)
 
 
 def get_pos():
     global offset, is_stopped
-    pos = mixer.music.get_pos()
+    pos = 1
     if is_stopped:
         return 0.0
     elif pos == -1:
@@ -155,9 +150,9 @@ def get_pos():
 
 
 def is_playing():
-    global is_paused, is_stopped
+    global is_paused, is_stopped, pipeline
     return not is_paused and not is_stopped
-
+    #return pipeline.get_state() == Gst.State.PLAYING
 
 def add_observer(widget):
     global _observable

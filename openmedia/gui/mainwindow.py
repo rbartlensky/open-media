@@ -3,8 +3,8 @@
 from gi.repository import Gtk
 from openmedia.player import mixer
 from openmedia.observable.observable import Observer
-from progressbar import ProgressBar
-from controlbox import ControlBox
+from .progressbar import ProgressBar
+from .controlbox import ControlBox
 
 
 class InvalidWidgetStateException(Exception):
