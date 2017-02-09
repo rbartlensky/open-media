@@ -3,7 +3,7 @@
 from gi.repository import Gtk
 from .playlistbox import PlaylistBox
 from openmedia.observable.observable import Observer
-from openmedia.player import mixer
+from openmedia.player.player import Player
 from .tools.iconhelp import get_button_image
 from .tools.iconhelp import get_name
 
@@ -13,7 +13,7 @@ class ControlBox(Gtk.VBox, Observer):
     def __init__(self):
         Gtk.VBox.__init__(self, False)
         Observer.__init__(self)
-        mixer.add_observer(self)
+        # mixer.add_observer(self)
         self.button_box = Gtk.HBox()
         self.button_box.set_spacing(5)
         self.playlist_box = PlaylistBox()
@@ -48,12 +48,12 @@ class ControlBox(Gtk.VBox, Observer):
         self.playlist_button.connect("clicked", self._toggle_playlist)
 
     def update(self, event, event_type):
-        if event_type == mixer.PLAY_EVENT or event_type == mixer.NEXT_EVENT:
-            image = get_button_image(get_name("pause"))
-            self.play_button.set_image(image)
-        elif event_type == mixer.PAUSE_EVENT or event_type == mixer.STOP_EVENT:
-            image = get_button_image(get_name("play"))
-            self.play_button.set_image(image)
+        # if event_type == mixer.PLAY_EVENT or event_type == mixer.NEXT_EVENT:
+        #    image = get_button_image(get_name("pause"))
+        #    self.play_button.set_image(image)
+        # elif event_type == mixer.PAUSE_EVENT or event_type == mixer.STOP_EVENT:
+        #    image = get_button_image(get_name("play"))
+        #    self.play_button.set_image(image)
         return False
 
     def show(self):
@@ -61,21 +61,22 @@ class ControlBox(Gtk.VBox, Observer):
         self.playlist_box.hide()
 
     def _play_pause(self, widget):
-        if mixer.is_playing():
-            mixer.pause()
-        else:
-            mixer.play()
+        # if mixer.is_playing():
+        #    mixer.pause()
+        # else:
+        #    mixer.play()
+        pass
 
     def _play_next(self, widget):
-        mixer.play_next()
+        # mixer.play_next()
         if self.playlist_box.is_visible():
             self.playlist_box.show_all()
 
     def _stop(self, widget):
-        mixer.stop()
+        pass # mixer.stop()
 
     def _volume(self, widget, value):
-        mixer.set_volume(value)
+        pass # mixer.set_volume(value)
 
     def _toggle_playlist(self, widget):
         if self.playlist_box.is_visible():

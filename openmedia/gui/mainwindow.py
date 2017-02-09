@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from gi.repository import Gtk
-from openmedia.player import mixer
+from openmedia.player.player import Player
 from openmedia.observable.observable import Observer
 from .progressbar import ProgressBar
 from .controlbox import ControlBox
@@ -17,9 +17,9 @@ class MainWindow(Gtk.Window, Observer):
         Gtk.Window.__init__(self, title="open-media")
         Observer.__init__(self)
         self.connect("delete-event", self.halt)
-        mixer.add_observer(self)
+        # mixer.add_observer(self)
 
-        self.progress_bar = ProgressBar(mixer.get_song_duration())
+        # self.progress_bar = ProgressBar(mixer.get_song_duration())
         self.control_box = ControlBox()
 
         # it contains the control buttons (play, stop etc), the playlist and

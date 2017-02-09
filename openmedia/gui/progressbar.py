@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from gi.repository import Gtk
-from openmedia.player import mixer
+from openmedia.player.player import Player
 from openmedia.tools.timeformatter import hms_format
 
 
@@ -25,7 +25,7 @@ class ProgressBar(Gtk.Scale):
 
     def _end_skip(self, widget, value):
         self._skipping = False
-        mixer.skip(widget.get_value())
+        # mixer.skip(widget.get_value())
 
 
 def _hms_format(scale, value):

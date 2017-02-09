@@ -1,17 +1,18 @@
 from threading import Thread
 from subprocess import call
 import os
-import openmedia.player.mixer as mixer
+from openmedia.player.player import Player
 
 help_open = False
+mixer = None
 
 
 def print_playlist(args):
+    global mixer
     if args:
         if not mixer.current_track:
-            mixer.init(args)
             mixer.play()
-        call(['clear'])
+        # call(['clear'])
         print('Type "h" for help.\nYour playlist is:')
         for arg in args:
             filename = os.path.basename(arg)
@@ -19,12 +20,12 @@ def print_playlist(args):
                 print(('{:<8}{:}'.format('*', filename)))
             else:
                 print(('{:<8}{:}'.format('', filename)))
-        if mixer.is_playing():
-            print('Playing')
-        elif mixer.is_paused:
-            print('Paused')
-        else:
-            print('Stopped')
+        # if mixer.is_playing():
+        #    print('Playing')
+        # elif mixer.is_paused:
+        #    print('Paused')
+        # else:
+        #    print('Stopped')
     else:
         print_help()
 
@@ -50,10 +51,10 @@ def start_player(args):
         if not help_open:
             print_playlist(playlist)
         else:
-            print((_help()))
+            print_help()
         input_char = input().strip()
         if input_char == 'h':
-            print((_help()))
+            print_help()
         elif input_char == 'n':
             mixer.play_next()
         elif input_char == 'p':
@@ -75,7 +76,9 @@ def start_player(args):
             print(("Unknown command '%s'" % input_char))
 
 
-def run(args=[]):
+def run(player, args=[]):
+    global mixer
+    mixer = player
     mixer.play()
     runner = Thread(target=start_player, args=(args,))
     runner.start()
