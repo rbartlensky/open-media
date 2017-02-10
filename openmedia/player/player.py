@@ -61,8 +61,6 @@ class Player(Observable):
                 self.offset = 0
                 self.filesrc.set_property("location",
                                           self.current_track.file_path)
-                #if not self.player_thread.isAlive():
-                #    self.player_thread.start()
             self.pipeline.set_state(Gst.State.PLAYING)
 
     def stop(self):
@@ -74,10 +72,10 @@ class Player(Observable):
         self.notify_observers(PAUSE_EVENT)
 
     def is_playing(self):
-        return self.pipeline.get_state(0)[1] == Gst.State.PLAYING
+        return self.pipeline.get_state(Gst.CLOCK_TIME_NONE)[1] == Gst.State.PLAYING
 
     def is_paused(self):
-        return self.pipeline.get_state(0)[1] == Gst.State.PAUSED
+        return self.pipeline.get_state(Gst.CLOCK_TIME_NONE)[1] == Gst.State.PAUSED
 
     def get_song_index(self, path):
         for idx, track in enumerate(self.track_list):
