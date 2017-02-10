@@ -76,7 +76,7 @@ class ControlBox(Gtk.VBox, Observer):
         Player.instance().stop()
 
     def _volume(self, widget, value):
-        pass # mixer.set_volume(value)
+        Player.instance().set_volume(value)
 
     def _toggle_playlist(self, widget):
         if self.playlist_box.is_visible():

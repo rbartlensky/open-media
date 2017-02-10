@@ -27,16 +27,20 @@ class Player(Observable):
         self.decoder = Gst.ElementFactory.make("decodebin", "oggdecoder")
         self.converter = Gst.ElementFactory.make("audioconvert", "convert")
         self.sink = Gst.ElementFactory.make("alsasink", "sink")
+        self.volume = Gst.ElementFactory.make("volume", "volume")
+        self.volume.set_property("volume", 0.5)
 
         self.pipeline.add(self.filesrc)
         self.pipeline.add(self.decoder)
         self.pipeline.add(self.converter)
+        self.pipeline.add(self.volume)
         self.pipeline.add(self.sink)
         self.decoder.connect("pad-added", self._on_dyanmic_pad)
 
         self.filesrc.link(self.decoder)
         self.decoder.link(self.converter)
-        self.converter.link(self.sink)
+        self.converter.link(self.volume)
+        self.volume.link(self.sink)
 
     @classmethod
     def instance(cls):
@@ -100,6 +104,10 @@ class Player(Observable):
             return song
         else:
             return None
+
+    def set_volume(self, volume):
+        if volume >= 0.0 and volume <= 1.0:
+            self.volume.set_property("volume", volume)
 
     def notify_observers(self, event_type):
         Observable.notify_observers(self, event_type)
