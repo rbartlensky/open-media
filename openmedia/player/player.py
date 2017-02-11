@@ -86,6 +86,10 @@ class Player(Observable):
         return self.pipeline.get_state(Gst.CLOCK_TIME_NONE)[1] \
             == Gst.State.PAUSED
 
+    def is_stopped(self):
+        return self.pipeline.get_state(Gst.CLOCK_TIME_NONE)[1] \
+            == Gst.State.READY
+
     def get_song_index(self, path):
         for idx, track in enumerate(self.track_list):
             if path == track.file_path:
@@ -99,6 +103,20 @@ class Player(Observable):
             self.offset = 0
             self.current_track = self._get_next_song()
             self.play()
+
+    def skip(self, amount):
+        duration = self.get_song_duration()
+        if amount >= duration:
+            self.play_next()
+        else:
+            offset = amount * 10**9
+            self.play()
+            while not self.is_playing():
+                # wait for the pipeline to start playing
+                pass
+            self.pipeline.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH,
+                                      offset)
+            self.notify_observers(PLAY_EVENT)
 
     def get_song_duration(self):
         if self.current_track:
