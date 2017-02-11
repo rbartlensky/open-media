@@ -53,15 +53,20 @@ class Player(Observable):
         if len(self.track_list):
             self.notify_observers(PLAY_EVENT)
             if path:
+                self.pipeline.set_state(Gst.State.READY)
                 self.curr_track_index = self.get_song_index(path)
-            if self.pipeline.get_state(0)[1] == Gst.State.PAUSED and\
-               path is None:
-                pass
+                self.current_track = self.track_list[self.curr_track_index]
+                self.filesrc.set_property("location",
+                                          self.current_track.file_path)
+                self.pipeline.set_state(Gst.State.PLAYING)
+            if self.is_paused() and path is None:
+                self.pipeline.set_state(Gst.State.PLAYING)
             else:
+                self.pipeline.set_state(Gst.State.READY)
                 self.offset = 0
                 self.filesrc.set_property("location",
                                           self.current_track.file_path)
-            self.pipeline.set_state(Gst.State.PLAYING)
+                self.pipeline.set_state(Gst.State.PLAYING)
 
     def stop(self):
         self.pipeline.set_state(Gst.State.READY)
