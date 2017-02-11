@@ -3,29 +3,28 @@ from subprocess import call
 import os
 from openmedia.player.player import Player
 
+
 help_open = False
-mixer = None
 
 
 def print_playlist(args):
-    global mixer
     if args:
-        if not mixer.current_track:
-            mixer.play()
-        # call(['clear'])
+        if not Player.instance().current_track:
+            Player.instance().play()
+        call(['clear'])
         print('Type "h" for help.\nYour playlist is:')
         for arg in args:
             filename = os.path.basename(arg)
-            if filename == os.path.basename(mixer.current_track.file_path):
+            if filename == os.path.basename(Player.instance().current_track.file_path):
                 print(('{:<8}{:}'.format('*', filename)))
             else:
                 print(('{:<8}{:}'.format('', filename)))
-        # if mixer.is_playing():
-        #    print('Playing')
-        # elif mixer.is_paused:
-        #    print('Paused')
-        # else:
-        #    print('Stopped')
+        if Player.instance().is_playing():
+            print('Playing')
+        elif Player.instance().is_paused:
+            print('Paused')
+        else:
+            print('Stopped')
     else:
         print_help()
 
@@ -56,30 +55,28 @@ def start_player(args):
         if input_char == 'h':
             print_help()
         elif input_char == 'n':
-            mixer.play_next()
+            Player.instance().play_next()
         elif input_char == 'p':
-            mixer.play()
+            Player.instance().play()
         elif input_char == 'P':
-            mixer.pause()
+            Player.instance().pause()
         elif input_char == 'r':
             help_open = False
-        elif input_char[0] == 'a':
+        elif len(input_char) and input_char[0] == 'a':
             tracks = input_char.split(' ')[1:]
             for track in tracks:
-                mixer.add(track)
+                Player.instance().add(track)
                 playlist.append(track)
             print_playlist(playlist)
         elif input_char == 'q':
-            mixer.stop()
+            Player.instance().stop()
             break
         else:
             print(("Unknown command '%s'" % input_char))
 
 
 def run(player, args=[]):
-    global mixer
-    mixer = player
-    mixer.play()
+    Player.instance().play()
     runner = Thread(target=start_player, args=(args,))
     runner.start()
     runner.join()

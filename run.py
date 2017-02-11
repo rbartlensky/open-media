@@ -7,9 +7,9 @@ from openmedia.gui.playerapp import PlayerApp
 
 
 def main(no_gui=True, args=[]):
-    player = Player(args)
+    player = Player(list(set(args)))
     if no_gui:
-        terminal_player.run(player, args)
+        terminal_player.run(player, list(set(args)))
     else:
         PlayerApp()
     player.player_thread.keep_running = False

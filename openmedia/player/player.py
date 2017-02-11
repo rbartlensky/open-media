@@ -76,6 +76,9 @@ class Player(Observable):
     def is_playing(self):
         return self.pipeline.get_state(0)[1] == Gst.State.PLAYING
 
+    def is_paused(self):
+        return self.pipeline.get_state(0)[1] == Gst.State.PAUSED
+
     def get_song_index(self, path):
         for idx, track in enumerate(self.track_list):
             if path == track.file_path:
@@ -108,6 +111,10 @@ class Player(Observable):
     def set_volume(self, volume):
         if volume >= 0.0 and volume <= 1.0:
             self.volume.set_property("volume", volume)
+
+    def add(self, track_path):
+        if track_path not in [track.file_path for track in self.track_list]:
+            self.track_list.append(Track(track_path))
 
     def notify_observers(self, event_type):
         Observable.notify_observers(self, event_type)
