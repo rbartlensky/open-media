@@ -19,7 +19,7 @@ class MainWindow(Gtk.Window, Observer):
         self.connect("delete-event", self.halt)
         Player.instance().add_observer(self)
 
-        self.progress_bar = ProgressBar(10)#mixer.get_song_duration())
+        self.progress_bar = ProgressBar(Player.instance().get_song_duration())
         self.control_box = ControlBox()
 
         # it contains the control buttons (play, stop etc), the playlist and
@@ -50,20 +50,20 @@ class MainWindow(Gtk.Window, Observer):
         self._update_status("Stopped.")
 
     def update(self, event, event_type):
-        from ..player import player as events
+        from ..player import player as event
         player = Player.instance()
-        if event_type == events.PLAY_EVENT or event_type == events.NEXT_EVENT:
+        if event_type == event.PLAY_EVENT or event_type == event.NEXT_EVENT:
             self.progress_bar.set_range(0, player.get_song_duration())
             self._update_status("Playing '" + str(player.current_track.name) +
                                 "'.")
-        elif event_type == events.PAUSE_EVENT or event_type == events.STOP_EVENT:
-            if event_type == events.PAUSE_EVENT:
+        elif event_type == event.PAUSE_EVENT or event_type == event.STOP_EVENT:
+            if event_type == event.PAUSE_EVENT:
                 self._update_status("Paused.")
             else:
                 self._update_status("Stopped.")
-        elif event_type == events.SLIDER_EVENT and \
+        elif event_type == event.SLIDER_EVENT and \
                 not self.progress_bar.skipping:
-            self.progress_bar.set_value(player.get_pos()/1000)
+            self.progress_bar.set_value(player.get_current_second())
             if player.is_playing():
                 self._update_status("Playing '" +
                                     str(player.current_track.name) + "'.")
