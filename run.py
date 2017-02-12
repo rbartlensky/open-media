@@ -1,18 +1,18 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import argparse
 import terminal_player
-from openmedia.player import mixer
+from openmedia.player.player import Player
 from openmedia.gui.playerapp import PlayerApp
 
 
 def main(no_gui=True, args=[]):
-    mixer.init(args)
+    player = Player(list(set(args)))
     if no_gui:
-        terminal_player.run(args)
+        terminal_player.run(player, list(set(args)))
     else:
         PlayerApp()
-    mixer.player_thread.keep_running = False
+    player.player_thread.keep_running = False
 
 
 if __name__ == '__main__':

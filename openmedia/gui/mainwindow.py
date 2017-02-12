@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from gi.repository import Gtk
-from openmedia.player import mixer
+from openmedia.player.player import Player
 from openmedia.observable.observable import Observer
-from progressbar import ProgressBar
-from controlbox import ControlBox
+from .progressbar import ProgressBar
+from .controlbox import ControlBox
 
 
 class InvalidWidgetStateException(Exception):
@@ -17,9 +17,9 @@ class MainWindow(Gtk.Window, Observer):
         Gtk.Window.__init__(self, title="open-media")
         Observer.__init__(self)
         self.connect("delete-event", self.halt)
-        mixer.add_observer(self)
+        Player.instance().add_observer(self)
 
-        self.progress_bar = ProgressBar(mixer.get_song_duration())
+        self.progress_bar = ProgressBar(Player.instance().get_song_duration())
         self.control_box = ControlBox()
 
         # it contains the control buttons (play, stop etc), the playlist and
@@ -50,21 +50,23 @@ class MainWindow(Gtk.Window, Observer):
         self._update_status("Stopped.")
 
     def update(self, event, event_type):
-        if event_type == mixer.PLAY_EVENT or event_type == mixer.NEXT_EVENT:
-            self.progress_bar.set_range(0, mixer.get_song_duration())
-            self._update_status("Playing '" + str(mixer.current_track.name) +
+        from ..player import player as event
+        player = Player.instance()
+        if event_type == event.PLAY_EVENT or event_type == event.NEXT_EVENT:
+            self.progress_bar.set_range(0, player.get_song_duration())
+            self._update_status("Playing '" + str(player.current_track.name) +
                                 "'.")
-        elif event_type == mixer.PAUSE_EVENT or event_type == mixer.STOP_EVENT:
-            if event_type == mixer.PAUSE_EVENT:
+        elif event_type == event.PAUSE_EVENT or event_type == event.STOP_EVENT:
+            if event_type == event.PAUSE_EVENT:
                 self._update_status("Paused.")
             else:
                 self._update_status("Stopped.")
-        elif event_type == mixer.SLIDER_EVENT and \
+        elif event_type == event.SLIDER_EVENT and \
                 not self.progress_bar.skipping:
-            self.progress_bar.set_value(mixer.get_pos()/1000)
-            if mixer.is_playing():
+            self.progress_bar.set_value(player.get_current_second())
+            if player.is_playing():
                 self._update_status("Playing '" +
-                                    str(mixer.current_track.name) + "'.")
+                                    str(player.current_track.name) + "'.")
         return False
 
     def _update_status(self, text="Nothing to show."):
@@ -74,5 +76,5 @@ class MainWindow(Gtk.Window, Observer):
         self.last_context_id = self.status_bar.push(context_id, text)
 
     def halt(self, window, event):
-        mixer.stop()
+        Player.instance().stop()
         Gtk.main_quit()

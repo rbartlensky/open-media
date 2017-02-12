@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from gi.repository import Gtk, Gio, GObject
-from openmedia.player import mixer
+from openmedia.player.player import Player
 from openmedia.observable.observable import Observer
 from openmedia.tools.timeformatter import hms_format
-from tools.iconhelp import get_name
+from .tools.iconhelp import get_name
 
 
 class PlaylistBox(Gtk.VBox, Observer):
@@ -12,7 +12,7 @@ class PlaylistBox(Gtk.VBox, Observer):
     def __init__(self):
         Gtk.VBox.__init__(self)
         Observer.__init__(self)
-        mixer.add_observer(self)
+        Player.instance().add_observer(self)
         self.set_spacing(5)
         self._create_playlist()
         self.pack_start(self.playlist, False, False, 0)
@@ -23,7 +23,7 @@ class PlaylistBox(Gtk.VBox, Observer):
         self.playlist = Gtk.ListBox()
         self.playlist.bind_model(self.model, self._create_list_item, None)
         self.playlist.connect("row_activated", self._play_item)
-        for track in mixer.track_list:
+        for track in Player.instance().track_list:
             item = ModelItem(track.metadata.track_name, track.duration)
             self.model.append(item)
         self.playlist.select_row(self.playlist.get_row_at_index(0))
@@ -41,15 +41,17 @@ class PlaylistBox(Gtk.VBox, Observer):
         dialog.set_default_response(Gtk.ResponseType.OK)
         response = dialog.run()
         if response == Gtk.ResponseType.OK:
-            mixer.add(dialog.get_filename())
-            track_name = mixer.track_list[-1].metadata.track_name
-            self.model.append(ModelItem(track_name,
-                                        mixer.track_list[-1].duration))
-            self.show_all()
+            player = Player.instance()
+            if player.add(dialog.get_filename()):
+                track_name = player.track_list[-1].metadata.track_name
+                self.model.append(ModelItem(track_name,
+                                            player.track_list[-1].duration))
+                self.show_all()
         dialog.destroy()
 
     def _play_item(self, list_box, row):
-        mixer.play(mixer.track_list[row.get_index()].file_path)
+        player = Player.instance()
+        player.play(player.track_list[row.get_index()].file_path)
 
     def _create_list_item(self, item, data):
         hbox = Gtk.HBox(5)
@@ -62,8 +64,10 @@ class PlaylistBox(Gtk.VBox, Observer):
         return hbox
 
     def update(self, event, event_type):
-        if event_type == mixer.PLAY_EVENT or event_type == mixer.NEXT_EVENT:
-            row = self.playlist.get_row_at_index(mixer.curr_track_index)
+        from openmedia.player import player as event
+        if event_type == event.PLAY_EVENT or event_type == event.NEXT_EVENT:
+            player = Player.instance()
+            row = self.playlist.get_row_at_index(player.curr_track_index)
             self.playlist.select_row(row)
         return False
 

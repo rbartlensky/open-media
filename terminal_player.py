@@ -1,30 +1,31 @@
 from threading import Thread
 from subprocess import call
 import os
-import openmedia.player.mixer as mixer
+from openmedia.player.player import Player
+
 
 help_open = False
 
 
 def print_playlist(args):
     if args:
-        if not mixer.current_track:
-            mixer.init(args)
-            mixer.play()
+        if not Player.instance().current_track:
+            Player.instance().play()
         call(['clear'])
-        print 'Type "h" for help.\nYour playlist is:'
+        print('Type "h" for help.\nYour playlist is:')
         for arg in args:
             filename = os.path.basename(arg)
-            if filename == os.path.basename(mixer.current_track.file_path):
-                print '{:<8}{:}'.format('*', filename)
+            track_path = Player.instance().current_track.file_path
+            if filename == os.path.basename(track_path):
+                print(('{:<8}{:}'.format('*', filename)))
             else:
-                print '{:<8}{:}'.format('', filename)
-        if mixer.is_playing():
-            print 'Playing'
-        elif mixer.is_paused:
-            print 'Paused'
+                print(('{:<8}{:}'.format('', filename)))
+        if Player.instance().is_playing():
+            print('Playing')
+        elif Player.instance().is_paused:
+            print('Paused')
         else:
-            print 'Stopped'
+            print('Stopped')
     else:
         print_help()
 
@@ -34,11 +35,11 @@ def print_help():
 
     help_open = True
     call(['clear'])
-    print "Type 'a' followed by a list of tracks to add them to the playlist"
-    print "Type 'n' to play the next track"
-    print "Type 'p' to play and 'P' to pause"
-    print "Type 'q' to quit"
-    print "Type 'r' to return to the main menu"
+    print("Type 'a' followed by a list of tracks to add them to the playlist")
+    print("Type 'n' to play the next track")
+    print("Type 'p' to play and 'P' to pause")
+    print("Type 'q' to quit")
+    print("Type 'r' to return to the main menu")
 
 
 def start_player(args):
@@ -51,32 +52,32 @@ def start_player(args):
             print_playlist(playlist)
         else:
             print_help()
-        input_char = raw_input().strip()
+        input_char = input().strip()
         if input_char == 'h':
             print_help()
         elif input_char == 'n':
-            mixer.play_next()
+            Player.instance().play_next()
         elif input_char == 'p':
-            mixer.play()
+            Player.instance().play()
         elif input_char == 'P':
-            mixer.pause()
+            Player.instance().pause()
         elif input_char == 'r':
             help_open = False
-        elif input_char[0] == 'a':
+        elif len(input_char) and input_char[0] == 'a':
             tracks = input_char.split(' ')[1:]
             for track in tracks:
-                mixer.add(track)
+                Player.instance().add(track)
                 playlist.append(track)
             print_playlist(playlist)
         elif input_char == 'q':
-            mixer.stop()
+            Player.instance().stop()
             break
         else:
-            print "Unknown command '%s'" % input_char
+            print(("Unknown command '%s'" % input_char))
 
 
-def run(args=[]):
-    mixer.play()
+def run(player, args=[]):
+    Player.instance().play()
     runner = Thread(target=start_player, args=(args,))
     runner.start()
     runner.join()
