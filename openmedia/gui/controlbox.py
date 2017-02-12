@@ -8,6 +8,7 @@ from .tools.iconhelp import get_button_image
 from .tools.iconhelp import get_name
 from ..player import player
 
+
 class ControlBox(Gtk.VBox, Observer):
 
     def __init__(self):
@@ -51,7 +52,8 @@ class ControlBox(Gtk.VBox, Observer):
         if event_type == player.PLAY_EVENT or event_type == player.NEXT_EVENT:
             image = get_button_image(get_name("pause"))
             self.play_button.set_image(image)
-        elif event_type == player.PAUSE_EVENT or event_type == player.STOP_EVENT:
+        elif event_type == player.PAUSE_EVENT or\
+                event_type == player.STOP_EVENT:
             image = get_button_image(get_name("play"))
             self.play_button.set_image(image)
         return False

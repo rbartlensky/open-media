@@ -24,7 +24,7 @@ class Player(Observable):
 
         self.pipeline = Gst.Pipeline.new('main-pipeline')
         self.filesrc = Gst.ElementFactory.make("filesrc", "filesrc")
-        self.decoder = Gst.ElementFactory.make("decodebin", "oggdecoder")
+        self.decoder = Gst.ElementFactory.make("decodebin", "decoder")
         self.converter = Gst.ElementFactory.make("audioconvert", "convert")
         self.sink = Gst.ElementFactory.make("alsasink", "sink")
         self.volume = Gst.ElementFactory.make("volume", "volume")
@@ -140,6 +140,8 @@ class Player(Observable):
     def add(self, track_path):
         if track_path not in [track.file_path for track in self.track_list]:
             self.track_list.append(Track(track_path))
+            return True
+        return False
 
     def get_current_second(self):
         return self.pipeline.query_position(3)[1] / 10**9
