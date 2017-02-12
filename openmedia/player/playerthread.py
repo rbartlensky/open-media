@@ -14,8 +14,8 @@ class PlayerThread(Thread):
         while self.keep_running:
             player = Player.instance()
             pos = player.get_current_second()
-            # XXX should be fixed
-            if player.is_playing() and abs(player.get_song_duration() - pos) <= 0.5:
+            # XXX this condition should be improved
+            if player.is_playing() and abs(player.get_song_duration() - pos) <= 1:
                 player.play_next()
             else:
                 time.sleep(0.1)
