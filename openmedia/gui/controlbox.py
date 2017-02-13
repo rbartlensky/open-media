@@ -22,6 +22,7 @@ class ControlBox(Gtk.VBox, Observer):
         self.set_spacing(5)
         self.button_box.pack_start(self.play_button, False, False, 0)
         self.button_box.pack_start(self.stop_button, False, False, 0)
+        self.button_box.pack_start(self.play_prev_button, False, False, 0)
         self.button_box.pack_start(self.play_next_button, False, False, 0)
         self.volume_box = Gtk.HBox()
         self.volume_box.pack_end(self.volume_button, False, True, 0)
@@ -40,6 +41,9 @@ class ControlBox(Gtk.VBox, Observer):
         self.play_next_button = Gtk.Button.new_from_icon_name(get_name("skip"),
                                                               Gtk.IconSize.BUTTON)
         self.play_next_button.connect("clicked", self._play_next)
+        self.play_prev_button = Gtk.Button.new_from_icon_name(get_name("prev"),
+                                                              Gtk.IconSize.BUTTON)
+        self.play_prev_button.connect("clicked", self._play_previous)
         self.volume_button = Gtk.VolumeButton()
         self.volume_button.set_value(0.5)
         self.volume_button.connect("value-changed", self._volume)
@@ -71,6 +75,11 @@ class ControlBox(Gtk.VBox, Observer):
 
     def _play_next(self, widget):
         Player.instance().play_next()
+        if self.playlist_box.is_visible():
+            self.playlist_box.show_all()
+
+    def _play_previous(self, widget):
+        Player.instance().play_previous()
         if self.playlist_box.is_visible():
             self.playlist_box.show_all()
 

@@ -19,7 +19,7 @@ class Player(Observable):
         self.curr_track_index = -1
         self.offset = 0
         if len(self.track_list):
-            self.current_track = self._get_next_song()
+            self.current_track = self._get_next_media()
         self.player_thread = PlayerThread()
 
         self.pipeline = Gst.Pipeline.new('main-pipeline')
@@ -101,7 +101,15 @@ class Player(Observable):
             self.notify_observers(NEXT_EVENT)
             self.stop()
             self.offset = 0
-            self.current_track = self._get_next_song()
+            self.current_track = self._get_next_media()
+            self.play()
+
+    def play_previous(self):
+        if len(self.track_list):
+            self.notify_observers(NEXT_EVENT)
+            self.stop()
+            self.offset = 0
+            self.current_track = self._get_prev_media()
             self.play()
 
     def skip(self, amount):
@@ -124,10 +132,19 @@ class Player(Observable):
         else:
             return 0
 
-    def _get_next_song(self):
+    def _get_next_media(self):
         if len(self.track_list):
             track_count = len(self.track_list)
             self.curr_track_index = (self.curr_track_index + 1) % track_count
+            song = self.track_list[self.curr_track_index]
+            return song
+        else:
+            return None
+
+    def _get_prev_media(self):
+        if len(self.track_list):
+            track_count = len(self.track_list)
+            self.curr_track_index = (track_count + self.curr_track_index - 1) % track_count
             song = self.track_list[self.curr_track_index]
             return song
         else:
