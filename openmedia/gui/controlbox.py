@@ -7,7 +7,7 @@ from openmedia.player.player import Player
 from .tools.iconhelp import get_button_image
 from .tools.iconhelp import get_name
 from ..player import player
-
+from . import WINDOW_WIDTH, WINDOW_HEIGHT
 
 class ControlBox(Gtk.VBox, Observer):
 
@@ -28,8 +28,7 @@ class ControlBox(Gtk.VBox, Observer):
         self.volume_box.pack_end(self.volume_button, False, True, 0)
         self.button_box.pack_start(self.playlist_button, False, False, 0)
         self.button_box.pack_end(self.volume_box, True, True, 0)
-        self.pack_start(self.playlist_box, False, False, 0)
-        self.pack_start(self.button_box, False, False, 0)
+        self.pack_end(self.button_box, False, False, 0)
 
     def _create_buttons(self):
         self.play_button = Gtk.Button.new_from_icon_name(get_name("play"),
@@ -62,10 +61,6 @@ class ControlBox(Gtk.VBox, Observer):
             self.play_button.set_image(image)
         return False
 
-    def show(self):
-        self.show_all()
-        self.playlist_box.hide()
-
     def _play_pause(self, widget):
         player = Player.instance()
         if player.is_playing():
@@ -90,7 +85,10 @@ class ControlBox(Gtk.VBox, Observer):
         Player.instance().set_volume(value)
 
     def _toggle_playlist(self, widget):
-        if self.playlist_box.is_visible():
-            self.playlist_box.set_visible(False)
+        if self.playlist_box in self.get_children():
+            self.remove(self.playlist_box)
+            self.get_toplevel().resize(WINDOW_WIDTH, WINDOW_HEIGHT)
+            self.show_all()
         else:
-            self.playlist_box.set_visible(True)
+            self.pack_start(self.playlist_box, False, False, 0)
+            self.show_all()
