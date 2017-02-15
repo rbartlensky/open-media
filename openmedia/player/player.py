@@ -15,6 +15,7 @@ class Player(Observable):
         if Player._instance is None:
             Player._instance = self
 
+        self._shuffle = False
         self.track_list = [Track(song) for song in song_list]
         self.curr_track_index = -1
         self.offset = 0
@@ -41,6 +42,14 @@ class Player(Observable):
         self.decoder.link(self.converter)
         self.converter.link(self.volume)
         self.volume.link(self.sink)
+
+    @property
+    def shuffle(self):
+        return self._shuffle
+
+    @shuffle.setter
+    def shuffle(self, value):
+        self._shuffle = value
 
     @classmethod
     def instance(cls):
@@ -135,7 +144,11 @@ class Player(Observable):
     def _get_next_media(self):
         if len(self.track_list):
             track_count = len(self.track_list)
-            self.curr_track_index = (self.curr_track_index + 1) % track_count
+            if self._shuffle:
+                import random
+                self.curr_track_index = random.randint(0, track_count - 1)
+            else:
+                self.curr_track_index = (self.curr_track_index + 1) % track_count
             song = self.track_list[self.curr_track_index]
             return song
         else:
@@ -144,7 +157,11 @@ class Player(Observable):
     def _get_prev_media(self):
         if len(self.track_list):
             track_count = len(self.track_list)
-            self.curr_track_index = (track_count + self.curr_track_index - 1) % track_count
+            if self._shuffle:
+                import random
+                self.curr_track_index = random.randint(0, track_count - 1)
+            else:
+                self.curr_track_index = (track_count + self.curr_track_index - 1) % track_count
             song = self.track_list[self.curr_track_index]
             return song
         else:

@@ -24,6 +24,7 @@ class ControlBox(Gtk.VBox, Observer):
         self.button_box.pack_start(self.stop_button, False, False, 0)
         self.button_box.pack_start(self.play_prev_button, False, False, 0)
         self.button_box.pack_start(self.play_next_button, False, False, 0)
+        self.button_box.pack_start(self.shuffle_button, False, False, 0)
         self.volume_box = Gtk.HBox()
         self.volume_box.pack_end(self.volume_button, False, True, 0)
         self.button_box.pack_start(self.playlist_button, False, False, 0)
@@ -47,6 +48,9 @@ class ControlBox(Gtk.VBox, Observer):
         self.volume_button.set_value(0.5)
         self.volume_button.connect("value-changed", self._volume)
         self.volume_button.x_align = 1.0
+        self.shuffle_button = Gtk.ToggleButton()
+        self.shuffle_button.set_image(get_button_image(get_name("shuffle")))
+        self.shuffle_button.connect("clicked", self._toggle_shuffle)
         self.playlist_button = Gtk.ToggleButton()
         self.playlist_button.set_image(get_button_image(get_name("menu")))
         self.playlist_button.connect("clicked", self._toggle_playlist)
@@ -83,6 +87,13 @@ class ControlBox(Gtk.VBox, Observer):
 
     def _volume(self, widget, value):
         Player.instance().set_volume(value)
+
+    def _toggle_shuffle(self, widget):
+        player = Player.instance()
+        if player.shuffle:
+            player.shuffle = False
+        else:
+            player.shuffle = True
 
     def _toggle_playlist(self, widget):
         if self.playlist_box in self.get_children():
