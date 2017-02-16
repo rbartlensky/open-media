@@ -7,6 +7,7 @@ from .progressbar import ProgressBar
 from .controlbox import ControlBox
 from . import WINDOW_WIDTH, WINDOW_HEIGHT
 
+
 class InvalidWidgetStateException(Exception):
     pass
 
