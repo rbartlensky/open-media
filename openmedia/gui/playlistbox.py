@@ -17,6 +17,7 @@ class PlaylistBox(Gtk.VBox, Observer):
         self._create_playlist()
         self.pack_start(self.playlist, False, False, 0)
         self.pack_start(self.add_track, False, False, 0)
+        self.set_visible(False)
 
     def _create_playlist(self):
         self.model = Gio.ListStore.new(ModelItem)
@@ -33,8 +34,7 @@ class PlaylistBox(Gtk.VBox, Observer):
 
     def _add_track(self, widget):
         dialog = Gtk.FileChooserDialog(Gtk.FileChooserAction.OPEN)
-        # XXX dialog should be transient for the main window
-        dialog.set_transient_for(Gtk.Window())
+        dialog.set_transient_for(self.get_toplevel())
         dialog.set_title("Add tracks to your playlist")
         dialog.add_button("_Open", Gtk.ResponseType.OK)
         dialog.add_button("_Cancel", Gtk.ResponseType.CANCEL)

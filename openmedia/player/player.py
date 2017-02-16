@@ -15,11 +15,12 @@ class Player(Observable):
         if Player._instance is None:
             Player._instance = self
 
+        self._shuffle = False
         self.track_list = [Track(song) for song in song_list]
         self.curr_track_index = -1
-        self.offset = 0
+        self.speed = 1.0
         if len(self.track_list):
-            self.current_track = self._get_next_song()
+            self.current_track = self._get_next_media()
         self.player_thread = PlayerThread()
 
         self.pipeline = Gst.Pipeline.new('main-pipeline')
@@ -41,6 +42,14 @@ class Player(Observable):
         self.decoder.link(self.converter)
         self.converter.link(self.volume)
         self.volume.link(self.sink)
+
+    @property
+    def shuffle(self):
+        return self._shuffle
+
+    @shuffle.setter
+    def shuffle(self, value):
+        self._shuffle = value
 
     @classmethod
     def instance(cls):
@@ -101,7 +110,15 @@ class Player(Observable):
             self.notify_observers(NEXT_EVENT)
             self.stop()
             self.offset = 0
-            self.current_track = self._get_next_song()
+            self.current_track = self._get_next_media()
+            self.play()
+
+    def play_previous(self):
+        if len(self.track_list):
+            self.notify_observers(NEXT_EVENT)
+            self.stop()
+            self.offset = 0
+            self.current_track = self._get_prev_media()
             self.play()
 
     def skip(self, amount):
@@ -109,12 +126,13 @@ class Player(Observable):
         if amount >= duration:
             self.play_next()
         else:
-            offset = amount * 10**9
+            offset = amount * Gst.SECOND
             self.play()
             while not self.is_playing():
                 # wait for the pipeline to start playing
                 pass
-            self.pipeline.seek_simple(Gst.Format.TIME, Gst.SeekFlags.FLUSH,
+            self.pipeline.seek_simple(Gst.Format.TIME,
+                                      Gst.SeekFlags.FLUSH,
                                       offset)
             self.notify_observers(PLAY_EVENT)
 
@@ -124,10 +142,27 @@ class Player(Observable):
         else:
             return 0
 
-    def _get_next_song(self):
+    def _get_next_media(self):
         if len(self.track_list):
             track_count = len(self.track_list)
-            self.curr_track_index = (self.curr_track_index + 1) % track_count
+            if self._shuffle:
+                import random
+                self.curr_track_index = random.randint(0, track_count - 1)
+            else:
+                self.curr_track_index = (self.curr_track_index + 1) % track_count
+            song = self.track_list[self.curr_track_index]
+            return song
+        else:
+            return None
+
+    def _get_prev_media(self):
+        if len(self.track_list):
+            track_count = len(self.track_list)
+            if self._shuffle:
+                import random
+                self.curr_track_index = random.randint(0, track_count - 1)
+            else:
+                self.curr_track_index = (track_count + self.curr_track_index - 1) % track_count
             song = self.track_list[self.curr_track_index]
             return song
         else:
@@ -144,7 +179,30 @@ class Player(Observable):
         return False
 
     def get_current_second(self):
-        return self.pipeline.query_position(3)[1] / 10**9
+        return self.pipeline.query_position(Gst.Format.TIME)[1] / Gst.SECOND
 
     def notify_observers(self, event_type):
         Observable.notify_observers(self, event_type)
+
+    def increase_playback_speed(self):
+        if self.speed <= 2.5:
+            self.speed += 0.10
+            self._set_speed()
+
+    def decrease_playback_speed(self):
+        if self.speed >= 0.20:
+            self.speed -= 0.10
+            self._set_speed()
+
+    def _set_speed(self):
+        self.pipeline.set_state(Gst.State.PAUSED)
+        event = Gst.Event.new_seek(self.speed,
+                                   Gst.Format.TIME,
+                                   (Gst.SeekFlags.FLUSH |
+                                    Gst.SeekFlags.ACCURATE),
+                                   Gst.SeekType.SET,
+                                   self.get_current_second() * Gst.SECOND,
+                                   Gst.SeekType.SET,
+                                   -1)
+        self.sink.send_event(event)
+        self.pipeline.set_state(Gst.State.PLAYING)

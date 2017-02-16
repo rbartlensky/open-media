@@ -5,6 +5,7 @@ from openmedia.player.player import Player
 from openmedia.observable.observable import Observer
 from .progressbar import ProgressBar
 from .controlbox import ControlBox
+from . import WINDOW_WIDTH, WINDOW_HEIGHT
 
 
 class InvalidWidgetStateException(Exception):
@@ -25,7 +26,7 @@ class MainWindow(Gtk.Window, Observer):
         # it contains the control buttons (play, stop etc), the playlist and
         # the progress bar
         self.upper_box = Gtk.VBox()
-        self.upper_box.pack_start(self.control_box, True, False, 0)
+        self.upper_box.pack_start(self.control_box, False, False, 0)
         self.upper_box.pack_start(self.progress_bar, False, False, 0)
 
         self.main_box = Gtk.VBox()
@@ -37,11 +38,11 @@ class MainWindow(Gtk.Window, Observer):
         self.main_box.pack_end(self.status_bar, False, False, 0)
         self.main_box.pack_end(Gtk.HSeparator(), False, False, 0)
         self.add(self.main_box)
+        self.set_default_size(WINDOW_WIDTH, WINDOW_HEIGHT)
         self.show()
 
     def show(self):
         self.show_all()
-        # XXX control_box hides the playlist in show
         self.control_box.show()
 
     def _create_status_bar(self):
