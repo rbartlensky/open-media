@@ -1,5 +1,24 @@
-# Open Media
+# open-media
 
 A free music player that can read many different audio formats.
 
-It supports a `--no-gui` mode in which it acts as a text based terminal player.
+![](https://raw.githubusercontent.com/ReapOmen/open-media/readme-documentation/open-media1.png)
+
+![](https://raw.githubusercontent.com/ReapOmen/open-media/readme-documentation/open-media2.png)
+
+## Features
+* Audio playback
+* Playback speed control
+* Option to shuffle the tracks in the playlist
+* A `--no-gui` mode which can be used to run the player in the terminal
+
+## Terminal player
+Run the terminal player using `run.py --no-gui -t <your space-sparated list of tracks>`.
+Type `h` to see the available commands and `q` to quit the terminal player.
+
+## Dependencies
+* Python3
+* GTK+ 3.22
+* Gstreamer 1.11.2
+* audiotools-3.1.1
+* Mutagen
