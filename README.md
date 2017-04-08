@@ -2,9 +2,9 @@
 
 A free music player that can read many different audio formats.
 
-![](https://raw.githubusercontent.com/ReapOmen/open-media/readme-documentation/open-media1.png)
+![](https://raw.githubusercontent.com/ReapOmen/open-media/master/open-media1.png)
 
-![](https://raw.githubusercontent.com/ReapOmen/open-media/readme-documentation/open-media2.png)
+![](https://raw.githubusercontent.com/ReapOmen/open-media/master/open-media2.png)
 
 ## Features
 * Audio playback
