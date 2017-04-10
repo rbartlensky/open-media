@@ -56,8 +56,10 @@ class Track(object):
         """
         The metadata associated with this track.
 
+        The metadata is a dictionary mapping tags to values.
+
         :getter: Return this track's metadata.
-        :type: Metadata
+        :type: dict
         """
         return self._metadata
 
