@@ -1,5 +1,4 @@
-from audiotools import open, UnsupportedFile
-import os
+from gi.repository import Gst, GstPbutils
 
 
 class Track(object):
@@ -19,20 +18,17 @@ class Track(object):
         :param file_path: the path of the file out of which to create a track
         :type file_path: str
         """
-        self._file_path = os.path.expanduser(file_path)
-        try:
-            track_file = open(self.file_path)
-            self._duration = float(track_file.seconds_length())
-            self._metadata = track_file.get_metadata()
-        except UnsupportedFile:
-            if file_path.endswith(".mp3"):
-                from mutagen import File
-                track_file = File(self.file_path)
-                self._metadata = Metadata(track_file)
-                self._duration = track_file.info.length
-            else:
-                self._duration = 0
-                self._metadata = None
+        self._file_path = file_path
+        self._metadata = {}
+        discoverer_info = self._get_discoverer_info(file_path)
+        tags = discoverer_info.get_tags()
+        self._metadata['title'] = tags.get_string(Gst.TAG_TITLE)[1]
+        self._duration = discoverer_info.get_duration() / Gst.SECOND
+
+    def _get_discoverer_info(self, file_path):
+        Gst.init()
+        discoverer = GstPbutils.Discoverer()
+        return discoverer.discover_uri("file://" + file_path)
 
     @property
     def name(self):
@@ -42,7 +38,7 @@ class Track(object):
         :getter: Return this track's name.
         :type: str
         """
-        return self._metadata.track_name
+        return self._metadata['title']
 
     @property
     def file_path(self):
@@ -74,55 +70,3 @@ class Track(object):
         :type: int
         """
         return self._duration
-
-
-class Metadata(object):
-    """
-    This generates and holds the name of the artist, the name of the track
-    and the name of the album of a given mutagen file.
-
-    :note:This should only be used by Track.
-    """
-
-    def __init__(self, mutFile):
-        """
-        Create and extracts metadata out of a mutagen file type.
-
-        Parameters
-        ----------
-        :param mutFile: the mutagen file that will be used to extract metadata
-        :type mutFile: a mutagen file object
-        """
-        self._artist_name = mutFile["TPE1"]
-        self._album_name = mutFile["TALB"]
-        self._track_name = mutFile["TIT2"]
-
-    @property
-    def artist_name(self):
-        """
-        The name of the artist as specified in the file's metadata.
-
-        :getter: Return the file's artist name.
-        :type: str
-        """
-        return self._artist_name
-
-    @property
-    def album_name(self):
-        """
-        The name of the album as specified in the file's metadata.
-
-        :getter: Return the file's album name.
-        :type: str
-        """
-        return self._album_name
-
-    @property
-    def track_name(self):
-        """
-        The name of the track as specified in the file's metadata.
-
-        :getter: Return the file's track name.
-        :type: str
-        """
-        return self._track_name
