@@ -19,6 +19,4 @@ Type `h` to see the available commands and `q` to quit the terminal player.
 ## Dependencies
 * Python3
 * GTK+ 3.22
-* Gstreamer 1.11.2
-* audiotools-3.1.1
-* Mutagen
+* Gstreamer 1.11.2 (base, good, bad, ugly plugins)

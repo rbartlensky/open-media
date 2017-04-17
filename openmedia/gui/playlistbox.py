@@ -25,7 +25,7 @@ class PlaylistBox(Gtk.VBox, Observer):
         self.playlist.bind_model(self.model, self._create_list_item, None)
         self.playlist.connect("row_activated", self._play_item)
         for track in Player.instance().track_list:
-            item = ModelItem(track.metadata.track_name, track.duration)
+            item = ModelItem(track.name, track.duration)
             self.model.append(item)
         self.playlist.select_row(self.playlist.get_row_at_index(0))
         self.add_track = Gtk.Button.new_from_icon_name(get_name("add"),
@@ -43,7 +43,7 @@ class PlaylistBox(Gtk.VBox, Observer):
         if response == Gtk.ResponseType.OK:
             player = Player.instance()
             if player.add(dialog.get_filename()):
-                track_name = player.track_list[-1].metadata.track_name
+                track_name = player.track_list[-1].name
                 self.model.append(ModelItem(track_name,
                                             player.track_list[-1].duration))
                 self.show_all()
