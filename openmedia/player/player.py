@@ -3,6 +3,7 @@ from .track import Track
 from .playerthread import PlayerThread
 from openmedia.observable.observable import Observable
 
+
 PLAY_EVENT, PAUSE_EVENT, STOP_EVENT,\
             NEXT_EVENT, SLIDER_EVENT = [index for index in range(5)]
 
@@ -34,7 +35,12 @@ class Player(Observable):
             Player._instance = self
 
         self._shuffle = False
-        self.track_list = [Track(song) for song in song_list]
+        self.track_list = []
+        for song in song_list:
+            try:
+                self.track_list.append(Track(song))
+            except:
+                print("Invalid file:", song)
         self.curr_track_index = -1
         self.speed = 1.0
         if len(self.track_list):

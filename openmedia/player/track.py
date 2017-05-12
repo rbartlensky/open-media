@@ -1,3 +1,4 @@
+import os.path
 from gi.repository import Gst, GstPbutils
 
 
@@ -18,9 +19,9 @@ class Track(object):
         :param file_path: the path of the file out of which to create a track
         :type file_path: str
         """
-        self._file_path = file_path
+        self._file_path = os.path.abspath(file_path)
         self._metadata = {}
-        discoverer_info = self._get_discoverer_info(file_path)
+        discoverer_info = self._get_discoverer_info(self._file_path)
         tags = discoverer_info.get_tags()
         self._metadata['title'] = tags.get_string(Gst.TAG_TITLE)[1]
         self._duration = discoverer_info.get_duration() / Gst.SECOND
