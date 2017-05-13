@@ -14,6 +14,7 @@ class PlaylistBox(Gtk.VBox, Observer):
         Observer.__init__(self)
         Player.instance().add_observer(self)
         self.set_spacing(5)
+        self.set_border_width(10)
         self._create_playlist()
         self.pack_start(self.playlist, False, False, 0)
         self.pack_start(self.add_track, False, False, 0)

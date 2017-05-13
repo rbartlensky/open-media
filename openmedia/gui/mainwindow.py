@@ -3,6 +3,7 @@
 from gi.repository import Gtk
 from openmedia.player.player import Player
 from openmedia.observable.observable import Observer
+from .playlistbox import PlaylistBox
 from .progressbar import ProgressBar
 from .controlbox import ControlBox
 from . import WINDOW_WIDTH, WINDOW_HEIGHT
@@ -23,6 +24,11 @@ class MainWindow(Gtk.Window, Observer):
         self.progress_bar = ProgressBar(Player.instance().get_song_duration())
         self.control_box = ControlBox()
 
+        self.top_h_box = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
+        self.top_h_box.set_border_width(10)
+        self.top_h_box.set_wide_handle(True)
+        self.playlist_box = PlaylistBox()
+
         # it contains the control buttons (play, stop etc), the playlist and
         # the progress bar
         self.upper_box = Gtk.VBox()
@@ -37,7 +43,8 @@ class MainWindow(Gtk.Window, Observer):
         self._create_status_bar()
         self.main_box.pack_end(self.status_bar, False, False, 0)
         self.main_box.pack_end(Gtk.HSeparator(), False, False, 0)
-        self.add(self.main_box)
+        self.top_h_box.pack1(self.main_box, True, False)
+        self.add(self.top_h_box)
         self.set_default_size(WINDOW_WIDTH, WINDOW_HEIGHT)
         self.show()
 
@@ -49,6 +56,13 @@ class MainWindow(Gtk.Window, Observer):
         self.status_bar = Gtk.Statusbar()
         self.last_context_id = None
         self._update_status("Stopped.")
+
+    def show_playlist(self):
+        if self.playlist_box in self.top_h_box.get_children():
+            self.top_h_box.remove(self.playlist_box)
+        else:
+            self.top_h_box.pack2(self.playlist_box, False, False)
+            self.show_all()
 
     def update(self, event, event_type):
         from ..player import player as event

@@ -18,7 +18,6 @@ class ControlBox(Gtk.VBox, Observer):
         Player.instance().add_observer(self)
         self.button_box = Gtk.HBox()
         self.button_box.set_spacing(5)
-        self.playlist_box = PlaylistBox()
         self._create_buttons()
         self.set_spacing(5)
         self.button_box.pack_start(self.play_button, False, False, 0)
@@ -101,13 +100,7 @@ class ControlBox(Gtk.VBox, Observer):
             player.shuffle = True
 
     def _toggle_playlist(self, widget):
-        if self.playlist_box in self.get_children():
-            self.remove(self.playlist_box)
-            self.get_toplevel().resize(WINDOW_WIDTH, WINDOW_HEIGHT)
-            self.show_all()
-        else:
-            self.pack_start(self.playlist_box, False, False, 0)
-            self.show_all()
+        self.get_toplevel().show_playlist()
 
     def _increase_speed(self, widget):
         Player.instance().increase_playback_speed()
