@@ -42,7 +42,7 @@ class Player(Observable):
             except:
                 print("Invalid file:", song)
         self.curr_track_index = -1
-        self.speed = 1.0
+        self._speed = 1.0
         if len(self.track_list):
             self.current_track = self._get_next_media()
         self.player_thread = PlayerThread()
@@ -220,9 +220,13 @@ class Player(Observable):
             while not self.is_playing():
                 # wait for the pipeline to start playing
                 pass
-            self.pipeline.seek_simple(Gst.Format.TIME,
-                                      Gst.SeekFlags.FLUSH,
-                                      offset)
+            self.pipeline.seek(self._speed,
+                               Gst.Format.TIME,
+                               Gst.SeekFlags.FLUSH,
+                               Gst.SeekType.SET,
+                               offset,
+                               Gst.SeekType.SET,
+                               -1)
             self.notify_observers(PLAY_EVENT)
 
     def get_song_duration(self):
@@ -306,8 +310,8 @@ class Player(Observable):
         :note: This will not increase the speed of the track if the current playback\
         speed is greater or equal to 2.5 (250 percent).
         """
-        if self.speed <= 2.5:
-            self.speed += 0.10
+        if self._speed <= 2.5:
+            self._speed += 0.10
             self._set_speed()
 
     def decrease_playback_speed(self):
@@ -317,13 +321,13 @@ class Player(Observable):
         :note: This will not decrease the speed of the track if the current playback\
         speed is less or equal to 0.20 (20 percent).
         """
-        if self.speed >= 0.20:
-            self.speed -= 0.10
+        if self._speed >= 0.20:
+            self._speed -= 0.10
             self._set_speed()
 
     def _set_speed(self):
         self.pipeline.set_state(Gst.State.PAUSED)
-        event = Gst.Event.new_seek(self.speed,
+        event = Gst.Event.new_seek(self._speed,
                                    Gst.Format.TIME,
                                    (Gst.SeekFlags.FLUSH |
                                     Gst.SeekFlags.ACCURATE),
