@@ -23,10 +23,6 @@ class MainWindow(Gtk.Window, Observer):
 
         self.progress_bar = ProgressBar(Player.instance().get_song_duration())
         self.control_box = ControlBox()
-
-        self.top_h_box = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
-        self.top_h_box.set_border_width(10)
-        self.top_h_box.set_wide_handle(True)
         self.playlist_box = PlaylistBox()
 
         # it contains the control buttons (play, stop etc), the playlist and
@@ -35,16 +31,22 @@ class MainWindow(Gtk.Window, Observer):
         self.upper_box.pack_start(self.control_box, False, False, 0)
         self.upper_box.pack_start(self.progress_bar, False, False, 0)
 
-        self.main_box = Gtk.VBox()
-        self.main_box.set_border_width(10)
-        self.main_box.set_spacing(5)
-        self.main_box.pack_start(self.upper_box, False, True, 0)
-
+        # contains the control box and the status widget
+        self.control_status_box = Gtk.VBox()
+        self.control_status_box.set_border_width(10)
+        self.control_status_box.set_spacing(5)
+        self.control_status_box.pack_start(self.upper_box, False, True, 0)
         self._create_status_bar()
-        self.main_box.pack_end(self.status_bar, False, False, 0)
-        self.main_box.pack_end(Gtk.HSeparator(), False, False, 0)
-        self.top_h_box.pack1(self.main_box, True, False)
-        self.add(self.top_h_box)
+        self.control_status_box.pack_end(self.status_bar, False, False, 0)
+        self.control_status_box.pack_end(Gtk.HSeparator(), False, False, 0)
+
+        # contains the control box, status widget and playlist box
+        self.main_paned = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
+        self.main_paned.set_border_width(10)
+        self.main_paned.set_wide_handle(True)
+        self.main_paned.pack1(self.control_status_box, True, False)
+
+        self.add(self.main_paned)
         self.set_default_size(WINDOW_WIDTH, WINDOW_HEIGHT)
         self.show()
 
@@ -58,10 +60,10 @@ class MainWindow(Gtk.Window, Observer):
         self._update_status("Stopped.")
 
     def show_playlist(self):
-        if self.playlist_box in self.top_h_box.get_children():
-            self.top_h_box.remove(self.playlist_box)
+        if self.playlist_box in self.main_paned.get_children():
+            self.main_paned.remove(self.playlist_box)
         else:
-            self.top_h_box.pack2(self.playlist_box, False, False)
+            self.main_paned.pack2(self.playlist_box, False, False)
             self.show_all()
 
     def update(self, event, event_type):
