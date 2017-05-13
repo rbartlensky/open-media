@@ -28,6 +28,8 @@ class MainWindow(Gtk.Window, Observer):
         # it contains the control buttons (play, stop etc), the playlist and
         # the progress bar
         self.upper_box = Gtk.VBox()
+        self.album_cover = Gtk.Image()
+        self.upper_box.pack_start(self.album_cover, False, False, 0)
         self.upper_box.pack_start(self.control_box, False, False, 0)
         self.upper_box.pack_start(self.progress_bar, False, False, 0)
 
@@ -35,10 +37,10 @@ class MainWindow(Gtk.Window, Observer):
         self.control_status_box = Gtk.VBox()
         self.control_status_box.set_border_width(10)
         self.control_status_box.set_spacing(5)
-        self.control_status_box.pack_start(self.upper_box, False, True, 0)
         self._create_status_bar()
         self.control_status_box.pack_end(self.status_bar, False, False, 0)
         self.control_status_box.pack_end(Gtk.HSeparator(), False, False, 0)
+        self.control_status_box.pack_end(self.upper_box, False, True, 0)
 
         # contains the control box, status widget and playlist box
         self.main_paned = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
@@ -66,6 +68,11 @@ class MainWindow(Gtk.Window, Observer):
             self.main_paned.pack2(self.playlist_box, False, False)
             self.show_all()
 
+    def _show_image(self):
+        file_path = Player.instance().current_track.metadata['image']
+        self.album_cover.set_from_file(file_path)
+        self.show_all()
+
     def update(self, event, event_type):
         from ..player import player as event
         player = Player.instance()
@@ -73,6 +80,7 @@ class MainWindow(Gtk.Window, Observer):
             self.progress_bar.set_range(0, player.get_song_duration())
             self._update_status("Playing '" + str(player.current_track.name) +
                                 "'.")
+            self._show_image()
         elif event_type == event.PAUSE_EVENT or event_type == event.STOP_EVENT:
             if event_type == event.PAUSE_EVENT:
                 self._update_status("Paused.")
