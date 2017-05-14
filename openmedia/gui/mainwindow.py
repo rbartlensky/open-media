@@ -6,6 +6,7 @@ from openmedia.observable.observable import Observer
 from .playlistbox import PlaylistBox
 from .progressbar import ProgressBar
 from .controlbox import ControlBox
+from .resizableimage import ResizableImage
 from . import WINDOW_WIDTH, WINDOW_HEIGHT
 
 
@@ -28,7 +29,8 @@ class MainWindow(Gtk.Window, Observer):
         # it contains the control buttons (play, stop etc), the playlist and
         # the progress bar
         self.upper_box = Gtk.VBox()
-        self.album_cover = Gtk.Image()
+        self.album_cover = ResizableImage(Player.instance().current_track.metadata['image'])
+
         self.upper_box.pack_start(self.album_cover, False, False, 0)
         self.upper_box.pack_start(self.control_box, False, False, 0)
         self.upper_box.pack_start(self.progress_bar, False, False, 0)
@@ -50,11 +52,7 @@ class MainWindow(Gtk.Window, Observer):
 
         self.add(self.main_paned)
         self.set_default_size(WINDOW_WIDTH, WINDOW_HEIGHT)
-        self.show()
-
-    def show(self):
         self.show_all()
-        self.control_box.show()
 
     def _create_status_bar(self):
         self.status_bar = Gtk.Statusbar()
