@@ -48,7 +48,7 @@ class MainWindow(Gtk.Window, Observer):
         self.main_paned = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
         self.main_paned.set_border_width(10)
         self.main_paned.set_wide_handle(True)
-        self.main_paned.pack1(self.control_status_box, True, False)
+        self.main_paned.pack1(self.control_status_box, True, True)
 
         self.add(self.main_paned)
         self.set_default_size(WINDOW_WIDTH, WINDOW_HEIGHT)
