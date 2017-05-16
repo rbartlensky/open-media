@@ -33,7 +33,6 @@ class Track(object):
             self._metadata['image'] = os.path.abspath('./openmedia/gui/res/img/no_image.png')
         self._duration = discoverer_info.get_duration() / Gst.SECOND
 
-
     def _get_discoverer_info(self, file_path):
         Gst.init()
         discoverer = GstPbutils.Discoverer()

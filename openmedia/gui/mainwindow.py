@@ -7,7 +7,6 @@ from .playlistbox import PlaylistBox
 from .progressbar import ProgressBar
 from .controlbox import ControlBox
 from .resizableimage import ResizableImage
-from . import WINDOW_WIDTH, WINDOW_HEIGHT
 
 
 class InvalidWidgetStateException(Exception):
@@ -31,7 +30,7 @@ class MainWindow(Gtk.Window, Observer):
         self.upper_box = Gtk.VBox()
         self.album_cover = ResizableImage(Player.instance().current_track.metadata['image'])
 
-        self.upper_box.pack_start(self.album_cover, False, False, 0)
+        self.upper_box.pack_start(self.album_cover, False, False, 10)
         self.upper_box.pack_start(self.control_box, False, False, 0)
         self.upper_box.pack_start(self.progress_bar, False, False, 0)
 
@@ -48,10 +47,9 @@ class MainWindow(Gtk.Window, Observer):
         self.main_paned = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
         self.main_paned.set_border_width(10)
         self.main_paned.set_wide_handle(True)
-        self.main_paned.pack1(self.control_status_box, True, True)
+        self.main_paned.pack1(self.control_status_box, True, False)
 
         self.add(self.main_paned)
-        self.set_default_size(WINDOW_WIDTH, WINDOW_HEIGHT)
         self.show_all()
 
     def _create_status_bar(self):

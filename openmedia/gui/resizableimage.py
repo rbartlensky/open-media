@@ -16,9 +16,15 @@ class ResizableImage(Gtk.EventBox):
         self.pixbuf = GdkPixbuf.Pixbuf.new_from_file(filename)
         self.image.set_from_pixbuf(self.pixbuf)
 
-    def __resize_cb(self, widget, size):
-        width = min(size.width, self.max_width)
-        height = min(size.height, self.max_height)
+    def __resize_cb(self, widget, rect):
+        width = min(rect.width, self.max_width)
+        height = min(rect.height, self.max_height)
         pixbuf_new = self.pixbuf.scale_simple(width, height,
                                               GdkPixbuf.InterpType.BILINEAR)
         self.image.props.pixbuf = pixbuf_new
+
+    def do_get_preferred_width(self):
+        return 0.0, self.max_width
+
+    def do_get_preferred_height(self):
+        return 0.0, self.max_height
