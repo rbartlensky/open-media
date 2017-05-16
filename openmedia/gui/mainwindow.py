@@ -3,9 +3,10 @@
 from gi.repository import Gtk
 from openmedia.player.player import Player
 from openmedia.observable.observable import Observer
+from .playlistbox import PlaylistBox
 from .progressbar import ProgressBar
 from .controlbox import ControlBox
-from . import WINDOW_WIDTH, WINDOW_HEIGHT
+from .resizableimage import ResizableImage
 
 
 class InvalidWidgetStateException(Exception):
@@ -22,33 +23,51 @@ class MainWindow(Gtk.Window, Observer):
 
         self.progress_bar = ProgressBar(Player.instance().get_song_duration())
         self.control_box = ControlBox()
+        self.playlist_box = PlaylistBox()
 
         # it contains the control buttons (play, stop etc), the playlist and
         # the progress bar
         self.upper_box = Gtk.VBox()
+        self.album_cover = ResizableImage(Player.instance().current_track.metadata['image'])
+
+        self.upper_box.pack_start(self.album_cover, False, False, 10)
         self.upper_box.pack_start(self.control_box, False, False, 0)
         self.upper_box.pack_start(self.progress_bar, False, False, 0)
 
-        self.main_box = Gtk.VBox()
-        self.main_box.set_border_width(10)
-        self.main_box.set_spacing(5)
-        self.main_box.pack_start(self.upper_box, False, True, 0)
-
+        # contains the control box and the status widget
+        self.control_status_box = Gtk.VBox()
+        self.control_status_box.set_border_width(10)
+        self.control_status_box.set_spacing(5)
         self._create_status_bar()
-        self.main_box.pack_end(self.status_bar, False, False, 0)
-        self.main_box.pack_end(Gtk.HSeparator(), False, False, 0)
-        self.add(self.main_box)
-        self.set_default_size(WINDOW_WIDTH, WINDOW_HEIGHT)
-        self.show()
+        self.control_status_box.pack_end(self.status_bar, False, False, 0)
+        self.control_status_box.pack_end(Gtk.HSeparator(), False, False, 0)
+        self.control_status_box.pack_end(self.upper_box, False, True, 0)
 
-    def show(self):
+        # contains the control box, status widget and playlist box
+        self.main_paned = Gtk.Paned.new(Gtk.Orientation.HORIZONTAL)
+        self.main_paned.set_border_width(10)
+        self.main_paned.set_wide_handle(True)
+        self.main_paned.pack1(self.control_status_box, True, False)
+
+        self.add(self.main_paned)
         self.show_all()
-        self.control_box.show()
 
     def _create_status_bar(self):
         self.status_bar = Gtk.Statusbar()
         self.last_context_id = None
         self._update_status("Stopped.")
+
+    def show_playlist(self):
+        if self.playlist_box in self.main_paned.get_children():
+            self.main_paned.remove(self.playlist_box)
+        else:
+            self.main_paned.pack2(self.playlist_box, False, False)
+            self.show_all()
+
+    def _show_image(self):
+        file_path = Player.instance().current_track.metadata['image']
+        self.album_cover.set_from_file(file_path)
+        self.show_all()
 
     def update(self, event, event_type):
         from ..player import player as event
@@ -57,6 +76,7 @@ class MainWindow(Gtk.Window, Observer):
             self.progress_bar.set_range(0, player.get_song_duration())
             self._update_status("Playing '" + str(player.current_track.name) +
                                 "'.")
+            self._show_image()
         elif event_type == event.PAUSE_EVENT or event_type == event.STOP_EVENT:
             if event_type == event.PAUSE_EVENT:
                 self._update_status("Paused.")

@@ -23,7 +23,14 @@ class Track(object):
         self._metadata = {}
         discoverer_info = self._get_discoverer_info(self._file_path)
         tags = discoverer_info.get_tags()
-        self._metadata['title'] = tags.get_string(Gst.TAG_TITLE)[1]
+        if tags.get_string(Gst.TAG_TITLE)[0]:
+            self._metadata['title'] = tags.get_string(Gst.TAG_TITLE)[1]
+        else:
+            self._metadata['title'] = 'untitled'
+        if tags.get_sample(Gst.TAG_IMAGE)[0]:
+            self._metadata['image'] = tags.get_sample(Gst.TAG_IMAGE)[1]
+        else:
+            self._metadata['image'] = os.path.abspath('./openmedia/gui/res/img/no_image.png')
         self._duration = discoverer_info.get_duration() / Gst.SECOND
 
     def _get_discoverer_info(self, file_path):
