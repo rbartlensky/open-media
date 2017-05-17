@@ -3,29 +3,30 @@ from .track import Track
 from .playerthread import PlayerThread
 from openmedia.observable.observable import Observable
 
-
 PLAY_EVENT, PAUSE_EVENT, STOP_EVENT,\
             NEXT_EVENT, SLIDER_EVENT = [index for index in range(5)]
 
 
 class Player(Observable):
     """
-    This is a singleton class that provides ways of manipulating the playback of multiple
-    media files.
+    This is a singleton class that provides ways of manipulating the playback
+    of multiple files.
 
-    This provides a way to play, pause, stop the playback of multiple media files and also
-    increase/decrease the speed of the playback.
+    This provides a way to play, pause, stop the playback of multiple media
+    files and also increase/decrease the speed of the playback.
 
-    This will contain a list of media files and new files can be added during the
-    playback of any media.
+    This will contain a list of media files and new files can be added during
+    the playback of any media.
     """
     _instance = None
 
     def __init__(self, song_list=[]):
         """
-        Create a player which will contain a list of media that will be playable.
+        Create a player which will contain a list of media that will be
+        playable.
 
-        :note: Use the instance method instead of instantiating a player directly.
+        :note: Use the instance method instead of instantiating a player
+               directly.
 
         :param song_list: the file paths to be added to the playlist
         :type song_list: list
@@ -46,26 +47,7 @@ class Player(Observable):
         if len(self.track_list):
             self.current_track = self._get_next_media()
         self.player_thread = PlayerThread()
-
-        self.pipeline = Gst.Pipeline.new('main-pipeline')
-        self.filesrc = Gst.ElementFactory.make("filesrc", "filesrc")
-        self.decoder = Gst.ElementFactory.make("decodebin", "decoder")
-        self.converter = Gst.ElementFactory.make("audioconvert", "convert")
-        self.sink = Gst.ElementFactory.make("alsasink", "sink")
-        self.volume = Gst.ElementFactory.make("volume", "volume")
-        self.volume.set_property("volume", 0.5)
-
-        self.pipeline.add(self.filesrc)
-        self.pipeline.add(self.decoder)
-        self.pipeline.add(self.converter)
-        self.pipeline.add(self.volume)
-        self.pipeline.add(self.sink)
-        self.decoder.connect("pad-added", self._on_dyanmic_pad)
-
-        self.filesrc.link(self.decoder)
-        self.decoder.link(self.converter)
-        self.converter.link(self.volume)
-        self.volume.link(self.sink)
+        self.playbin = Gst.ElementFactory.make("playbin", "playbin")
 
     @property
     def shuffle(self):
@@ -91,9 +73,6 @@ class Player(Observable):
         """
         return Player._instance
 
-    def _on_dyanmic_pad(self, dbin, pad):
-        pad.link(self.converter.get_static_pad("sink"))
-
     def play(self, path=None):
         """
         Set the player state to 'playing'.
@@ -111,21 +90,16 @@ class Player(Observable):
         """
         if len(self.track_list):
             self.notify_observers(PLAY_EVENT)
+            media_uri = 'file://' + self.current_track.file_path
             if path:
-                self.pipeline.set_state(Gst.State.READY)
+                self.playbin.set_state(Gst.State.READY)
                 self.curr_track_index = self.get_song_index(path)
                 self.current_track = self.track_list[self.curr_track_index]
-                self.filesrc.set_property("location",
-                                          self.current_track.file_path)
-                self.pipeline.set_state(Gst.State.PLAYING)
-            if self.is_paused() and path is None:
-                self.pipeline.set_state(Gst.State.PLAYING)
-            else:
-                self.pipeline.set_state(Gst.State.READY)
-                self.offset = 0
-                self.filesrc.set_property("location",
-                                          self.current_track.file_path)
-                self.pipeline.set_state(Gst.State.PLAYING)
+                self.playbin.set_property('uri', media_uri)
+            elif not self.is_paused():
+                self.playbin.set_state(Gst.State.READY)
+                self.playbin.set_property('uri', media_uri)
+            self.playbin.set_state(Gst.State.PLAYING)
             if not self.player_thread.isAlive():
                 self.player_thread.start()
 
@@ -133,14 +107,14 @@ class Player(Observable):
         """
         Stop the player, if it is playing.
         """
-        self.pipeline.set_state(Gst.State.READY)
+        self.playbin.set_state(Gst.State.READY)
         self.notify_observers(STOP_EVENT)
 
     def pause(self):
         """
         Pause the player, if it is playing.
         """
-        self.pipeline.set_state(Gst.State.PAUSED)
+        self.playbin.set_state(Gst.State.PAUSED)
         self.notify_observers(PAUSE_EVENT)
 
     def is_playing(self):
@@ -148,7 +122,7 @@ class Player(Observable):
         Return True if the player is playing, False otherwise.
         :returns: bool
         """
-        return self.pipeline.get_state(Gst.CLOCK_TIME_NONE)[1] \
+        return self.playbin.get_state(Gst.CLOCK_TIME_NONE)[1] \
             == Gst.State.PLAYING
 
     def is_paused(self):
@@ -156,7 +130,7 @@ class Player(Observable):
         Return True if the player is paused, False otherwise.
         :returns: bool
         """
-        return self.pipeline.get_state(Gst.CLOCK_TIME_NONE)[1] \
+        return self.playbin.get_state(Gst.CLOCK_TIME_NONE)[1] \
             == Gst.State.PAUSED
 
     def is_stopped(self):
@@ -164,7 +138,7 @@ class Player(Observable):
         Return True if the player is stopped, False otherwise.
         :returns: bool
         """
-        return self.pipeline.get_state(Gst.CLOCK_TIME_NONE)[1] \
+        return self.playbin.get_state(Gst.CLOCK_TIME_NONE)[1] \
             == Gst.State.READY
 
     def get_song_index(self, path):
@@ -186,7 +160,6 @@ class Player(Observable):
         if len(self.track_list):
             self.notify_observers(NEXT_EVENT)
             self.stop()
-            self.offset = 0
             self.current_track = self._get_next_media()
             self.play()
 
@@ -197,7 +170,6 @@ class Player(Observable):
         if len(self.track_list):
             self.notify_observers(NEXT_EVENT)
             self.stop()
-            self.offset = 0
             self.current_track = self._get_prev_media()
             self.play()
 
@@ -220,13 +192,13 @@ class Player(Observable):
             while not self.is_playing():
                 # wait for the pipeline to start playing
                 pass
-            self.pipeline.seek(self._speed,
-                               Gst.Format.TIME,
-                               Gst.SeekFlags.FLUSH,
-                               Gst.SeekType.SET,
-                               offset,
-                               Gst.SeekType.SET,
-                               -1)
+            self.playbin.seek(self._speed,
+                              Gst.Format.TIME,
+                              Gst.SeekFlags.FLUSH,
+                              Gst.SeekType.SET,
+                              offset,
+                              Gst.SeekType.SET,
+                              -1)
             self.notify_observers(PLAY_EVENT)
 
     def get_song_duration(self):
@@ -276,7 +248,7 @@ class Player(Observable):
         :note: the volume needs to be a value between 0.0 and 1.0
         """
         if volume >= 0.0 and volume <= 1.0:
-            self.volume.set_property("volume", volume)
+            self.playbin.set_property("volume", volume)
 
     def add(self, track_path):
         """
@@ -298,7 +270,7 @@ class Player(Observable):
 
         :returns: int -- the number of seconds
         """
-        return self.pipeline.query_position(Gst.Format.TIME)[1] / Gst.SECOND
+        return self.playbin.query_position(Gst.Format.TIME)[1] / Gst.SECOND
 
     def notify_observers(self, event_type):
         Observable.notify_observers(self, event_type)
@@ -326,7 +298,7 @@ class Player(Observable):
             self._set_speed()
 
     def _set_speed(self):
-        self.pipeline.set_state(Gst.State.PAUSED)
+        self.playbin.set_state(Gst.State.PAUSED)
         event = Gst.Event.new_seek(self._speed,
                                    Gst.Format.TIME,
                                    (Gst.SeekFlags.FLUSH |
@@ -335,5 +307,5 @@ class Player(Observable):
                                    self.get_current_second() * Gst.SECOND,
                                    Gst.SeekType.SET,
                                    -1)
-        self.sink.send_event(event)
-        self.pipeline.set_state(Gst.State.PLAYING)
+        self.playbin.send_event(event)
+        self.playbin.set_state(Gst.State.PLAYING)
