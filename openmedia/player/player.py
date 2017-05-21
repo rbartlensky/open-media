@@ -37,6 +37,7 @@ class Player(Observable):
 
         self._shuffle = False
         self.track_list = []
+        self.current_track = Track(None)
         for song in song_list:
             try:
                 self.track_list.append(Track(song))

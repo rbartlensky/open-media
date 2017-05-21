@@ -22,19 +22,21 @@ class Track(object):
         :param file_path: the path of the file out of which to create a track
         :type file_path: str
         """
-        self._file_path = os.path.abspath(file_path)
         self._metadata = {}
-        discoverer_info = self._get_discoverer_info(self._file_path)
-        tags = discoverer_info.get_tags()
-        if tags.get_string(Gst.TAG_TITLE)[0]:
-            self._metadata['title'] = tags.get_string(Gst.TAG_TITLE)[1]
-        else:
-            self._metadata['title'] = 'untitled'
-        if tags.get_sample(Gst.TAG_IMAGE)[0]:
-            self._metadata['image'] = tags.get_sample(Gst.TAG_IMAGE)[1]
-        else:
-            self._metadata['image'] = os.path.abspath(DEFAULT_IMAGE_PATH)
-        self._duration = discoverer_info.get_duration() / Gst.SECOND
+        self._duration = 0
+        if file_path:
+            self._file_path = os.path.abspath(file_path)
+            discoverer_info = self._get_discoverer_info(self._file_path)
+            tags = discoverer_info.get_tags()
+            if tags.get_string(Gst.TAG_TITLE)[0]:
+                self._metadata['title'] = tags.get_string(Gst.TAG_TITLE)[1]
+            else:
+                self._metadata['title'] = 'untitled'
+            if tags.get_sample(Gst.TAG_IMAGE)[0]:
+                self._metadata['image'] = tags.get_sample(Gst.TAG_IMAGE)[1]
+            else:
+                self._metadata['image'] = os.path.abspath(DEFAULT_IMAGE_PATH)
+            self._duration = discoverer_info.get_duration() / Gst.SECOND
 
     def _get_discoverer_info(self, file_path):
         Gst.init()
