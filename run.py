@@ -22,7 +22,7 @@ if __name__ == '__main__':
                              ' interface',
                         action='store_true')
     parser.add_argument('-t', '--track-list',
-                        help='the list of tracks to play',
+                        help='the list of media to play',
                         default=[], nargs='+')
     args = parser.parse_args()
     main(no_gui=args.no_gui, args=args.track_list)
