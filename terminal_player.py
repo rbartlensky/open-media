@@ -1,7 +1,10 @@
 from threading import Thread
 from subprocess import call
-import os
 from openmedia.player.player import Player
+from curses import wrapper
+from curses.textpad import Textbox
+import curses
+import os
 
 
 help_open = False
@@ -30,31 +33,37 @@ def print_playlist(args):
         print_help()
 
 
-def print_help():
+def print_help(stdscr):
     global help_open
 
     help_open = True
-    call(['clear'])
-    print("Type 'a' followed by a list of tracks to add them to the playlist")
-    print("Type 'n' to play the next track")
-    print("Type 'p' to play and 'P' to pause")
-    print("Type 'q' to quit")
-    print("Type 'r' to return to the main menu")
+    stdscr.clear()
+    stdscr.addstr(0,0,
+                  "Type 'a' followed by a list of tracks to add them to the playlist")
+    stdscr.addstr(1, 0, "Type 'n' to play the next track")
+    stdscr.addstr(2, 0, "Type 'p' to play and 'P' to pause")
+    stdscr.addstr(3, 0, "Type 'q' to quit")
+    stdscr.addstr(4, 0, "Type 'r' to return to the main menu")
 
 
-def start_player(args):
+def _validate_tracks(ch):
+    # user hits return
+    if ch == 10:
+        return 7
+    return ch
+
+
+def start_player(stdscr, args):
     global help_open
 
+    Player.instance().play()
     playlist = args[:]
-    input_char = None
     while True:
-        if not help_open:
+        input_char = stdscr.getkey()
+        if input_char == 'l':
             print_playlist(playlist)
-        else:
-            print_help()
-        input_char = input().strip()
-        if input_char == 'h':
-            print_help()
+        elif input_char == 'h':
+            print_help(stdscr)
         elif input_char == 'n':
             Player.instance().play_next()
         elif input_char == 'p':
@@ -63,8 +72,11 @@ def start_player(args):
             Player.instance().pause()
         elif input_char == 'r':
             help_open = False
-        elif len(input_char) and input_char[0] == 'a':
-            tracks = input_char.split(' ')[1:]
+        elif input_char == 'a':
+            box = Textbox(stdscr)
+            box.edit(_validate_tracks)
+            text_input = box.gather()
+            tracks = text_input.split(' ')[1:]
             for track in tracks:
                 Player.instance().add(track)
                 playlist.append(track)
@@ -73,11 +85,8 @@ def start_player(args):
             Player.instance().stop()
             break
         else:
-            print(("Unknown command '%s'" % input_char))
+            strscr.addstr("Unknown command '%s'" % input_char)
 
 
 def run(player, args=[]):
-    Player.instance().play()
-    runner = Thread(target=start_player, args=(args,))
-    runner.start()
-    runner.join()
+    wrapper(start_player, args)
